@@ -77,7 +77,7 @@
         android:id="@+id/tvWelcome"
         android:layout_width="320dp"
         android:layout_height="100dp"
-        android:layout_marginTop="200dp"
+        android:layout_marginTop="264dp"
         android:background="@drawable/bg_dialog"
         android:gravity="center"
         android:text="@string/welcome"
