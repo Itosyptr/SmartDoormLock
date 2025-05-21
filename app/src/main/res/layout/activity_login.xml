@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".login.LoginActivity">
+
+    <!-- ProgressBar (invisible, centered) -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Gambar atas (full lebar) -->
+            <ImageView
+                android:id="@+id/image_logo"
+                android:layout_width="match_parent"
+                android:layout_height="173dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/doble"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <!-- Email -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/emailEditTextLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="88dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:hint="@string/email"
+                app:boxStrokeColor="@color/maron"
+                app:boxStrokeWidth="2dp"
+                app:errorEnabled="true"
+                app:hintTextColor="@color/maron"
+                app:startIconDrawable="@drawable/baseline_email_24"
+                app:startIconTint="@color/maron"
+                app:layout_constraintTop_toBottomOf="@id/image_logo"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edt_Email"
+                    android:layout_width="match_parent"
+                    android:layout_height="58dp"
+                    android:fontFamily="@font/poppins_semi_bold"
+                    android:inputType="textEmailAddress"
+                    android:paddingStart="48dp"
+                    android:paddingEnd="50dp"
+                    android:textColor="@color/maron"
+                    android:textSize="16sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Password -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/PasswordEditTextLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:hint="@string/password"
+                app:boxStrokeColor="@color/maron"
+                app:boxStrokeWidth="2dp"
+                app:endIconMode="password_toggle"
+                app:endIconTint="@color/maron"
+                app:errorEnabled="true"
+                app:hintTextColor="@color/maron"
+                app:startIconDrawable="@drawable/baseline_lock_24"
+                app:startIconTint="@color/maron"
+                app:layout_constraintTop_toBottomOf="@id/emailEditTextLayout"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edt_Password"
+                    android:layout_width="match_parent"
+                    android:layout_height="58dp"
+                    android:fontFamily="@font/poppins_semi_bold"
+                    android:inputType="textPassword"
+                    android:paddingStart="48dp"
+                    android:paddingEnd="50dp"
+                    android:textColor="@color/maron"
+                    android:textSize="16sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Tombol Login -->
+            <Button
+                android:id="@+id/btnlogin"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_marginTop="30dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/background_button"
+                android:fontFamily="@font/poppins_bold"
+                android:text="@string/login"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                app:backgroundTint="@null"
+                app:layout_constraintTop_toBottomOf="@id/PasswordEditTextLayout"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <!-- Teks Bawah -->
+            <TextView
+                android:id="@+id/tv_Account"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Don't have an account?"
+                android:textColor="@android:color/black"
+                android:textSize="14sp"
+                app:layout_constraintTop_toBottomOf="@id/btnlogin"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <TextView
+                android:id="@+id/tv_Register"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Register Now"
+                android:textColor="@color/maron"
+                android:textSize="14sp"
+                app:layout_constraintTop_toBottomOf="@id/tv_Account"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+</RelativeLayout>

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "887165006195",
+    "project_id": "smartdoorm",
+    "storage_bucket": "smartdoorm.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:887165006195:android:ee0bcd2824e6e45ee91506",
+        "android_client_info": {
+          "package_name": "telkom.ta.smartdoor.register"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASr6M0nv6qUHz-1MpMvH4Q7yie7iSLLHk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

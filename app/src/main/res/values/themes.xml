@@ -1,0 +1,16 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.SmartDoor" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Warna latar belakang status bar -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+
+        <!-- Ini untuk mengatur ikon status bar menjadi gelap jika latar status bar terang -->
+        <item name="android:windowLightStatusBar">true</item>
+
+        <!-- (Opsional) warna lain yang kamu gunakan -->
+        <item name="colorPrimary">@color/black</item>
+        <item name="colorPrimaryVariant">@color/black</item>
+        <item name="colorOnPrimary">@color/red</item>
+    </style>
+
+</resources>
