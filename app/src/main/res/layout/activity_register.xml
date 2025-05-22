@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -12,8 +10,6 @@
     android:paddingTop="20dp"
     android:paddingEnd="15dp"
     tools:context=".register.RegisterActivity">
-
-    <!-- Background View Paling Luar -->
 
     <ScrollView
         android:id="@+id/scroll_view"
@@ -38,28 +34,27 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-
             <ImageButton
                 android:id="@+id/btn_back_to_login"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_margin="16dp"
-                android:src="@drawable/ic_back"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/back_button"
+                android:src="@drawable/ic_back"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:contentDescription="@string/back_button" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
                 android:id="@+id/ivregis"
                 android:layout_width="270dp"
                 android:layout_height="270dp"
                 android:layout_marginTop="100dp"
+                android:contentDescription="@string/iv1"
                 android:src="@drawable/logosd"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/btn_back_to_login"
-                android:contentDescription="@string/iv1" />
+                app:layout_constraintTop_toBottomOf="@+id/btn_back_to_login" />
 
             <ProgressBar
                 android:id="@+id/progress_bar"
@@ -71,7 +66,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/ivregis" />
 
-            <!-- Username -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/UsernameEditTextLayout"
                 android:layout_width="match_parent"
@@ -100,7 +94,31 @@
                     android:textSize="16sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Email -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/NimEditTextLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="@string/nim_label" app:boxStrokeColor="@color/maron"
+                app:boxStrokeWidth="2dp"
+                app:errorEnabled="true"
+                app:hintTextColor="@color/maron"
+                app:startIconDrawable="@drawable/baseline_school_24" app:startIconTint="@color/maron"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/UsernameEditTextLayout">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edt_nim"
+                    android:layout_width="match_parent"
+                    android:layout_height="58dp"
+                    android:fontFamily="@font/poppins_semi_bold"
+                    android:inputType="number"
+                    android:paddingStart="48dp"
+                    android:paddingEnd="5dp"
+                    android:textColor="@color/maron"
+                    android:textSize="16sp" />
+            </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/emailEditTextLayout"
                 android:layout_width="match_parent"
@@ -115,13 +133,12 @@
                 app:startIconTint="@color/maron"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/UsernameEditTextLayout">
+                app:layout_constraintTop_toBottomOf="@+id/NimEditTextLayout">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edt_Email"
                     android:layout_width="match_parent"
-                    android:layout_height="58dp"
-                    android:fontFamily="@font/poppins_semi_bold"
+                    android:layout_height="58dp" android:fontFamily="@font/poppins_semi_bold"
                     android:inputType="textEmailAddress"
                     android:paddingStart="48dp"
                     android:paddingEnd="5dp"
@@ -129,7 +146,6 @@
                     android:textSize="16sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Password -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/PasswordEditTextLayout"
                 android:layout_width="match_parent"
@@ -160,7 +176,6 @@
                     android:textSize="16sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Button Register -->
             <Button
                 android:id="@+id/btn_register"
                 android:layout_width="324dp"

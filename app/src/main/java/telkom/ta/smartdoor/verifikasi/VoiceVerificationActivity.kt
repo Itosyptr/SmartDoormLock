@@ -28,7 +28,7 @@ class VoiceVerificationActivity : AppCompatActivity() {
     private lateinit var speechRecognizer: SpeechRecognizer
 
     // ✅ Daftar kata kunci yang bisa digunakan untuk membuka pintu
-    private val keywords = listOf("open", "close", "eat","date","here","headphone")
+    private val keywords = listOf("open", "close", "crot crot crot", "buka", "saya datang", "saya masuk")
 
     private val RECORD_AUDIO_REQUEST_CODE = 1
 

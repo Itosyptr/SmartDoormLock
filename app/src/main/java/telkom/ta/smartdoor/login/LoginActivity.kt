@@ -7,52 +7,44 @@ import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
+import telkom.ta.smartdoor.MainActivity
+import telkom.ta.smartdoor.R
+import telkom.ta.smartdoor.register.RegisterActivity
+import telkom.ta.smartdoor.session.SessionManager // Import SessionManager
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
-import telkom.ta.smartdoor.MainActivity
-import telkom.ta.smartdoor.R
-import telkom.ta.smartdoor.register.RegisterActivity
 import java.io.IOException
 
 class LoginActivity : AppCompatActivity() {
     private val client = OkHttpClient()
+    private lateinit var sessionManager: SessionManager // Deklarasi SessionManager
 
-    companion object {
-        const val PREFS_NAME = "secure_prefs"
-
-        fun logout(sharedPreferences: SharedPreferences) {
-            sharedPreferences.edit().clear().apply()
-        }
-    }
+    // Hapus companion object yang tidak perlu di sini, karena logout ditangani SessionManager
+    // companion object {
+    //     const val PREFS_NAME = "secure_prefs"
+    //     fun logout(sharedPreferences: SharedPreferences) {
+    //         sharedPreferences.edit().clear().apply()
+    //     }
+    // }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        // Cek apakah user sudah login
-        val masterKey = MasterKey.Builder(this)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
+        // Inisialisasi SessionManager
+        sessionManager = SessionManager(this)
 
-        val sharedPreferences = EncryptedSharedPreferences.create(
-            this,
-            PREFS_NAME,
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-
-        if (sharedPreferences.contains("name")) {
+        // Pindahkan cek login ke sini dan gunakan SessionManager
+        if (sessionManager.isLoggedIn()) {
             // User sudah login, langsung ke MainActivity
             startActivity(Intent(this, MainActivity::class.java))
             finish()
+            return // Penting: Hentikan eksekusi onCreate agar tidak inisialisasi UI login
         }
 
-        // Inisialisasi komponen UI
+        // Inisialisasi komponen UI (hanya jika user BELUM login)
         val edtEmail = findViewById<EditText>(R.id.edt_Email)
         val edtPassword = findViewById<EditText>(R.id.edt_Password)
         val btnLogin = findViewById<Button>(R.id.btnlogin)
@@ -69,7 +61,8 @@ class LoginActivity : AppCompatActivity() {
                 edtEmail.error = "Format email tidak valid"
             } else {
                 progressBar.visibility = View.VISIBLE
-                performLogin(email, password, progressBar, sharedPreferences)
+                // Kirim SessionManager ke performLogin agar bisa menyimpan data
+                performLogin(email, password, progressBar)
             }
         }
 
@@ -78,7 +71,8 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun performLogin(email: String, password: String, progressBar: ProgressBar, sharedPreferences: SharedPreferences) {
+    // Hapus parameter SharedPreferences dari sini karena sudah ada sessionManager sebagai member
+    private fun performLogin(email: String, password: String, progressBar: ProgressBar) {
         val json = JSONObject().apply {
             put("email", email)
             put("password", password)
@@ -116,12 +110,13 @@ class LoginActivity : AppCompatActivity() {
 
                         try {
                             val jsonResponse = JSONObject(responseBody ?: "{}")
-                            sharedPreferences.edit().apply {
-                                putString("name", jsonResponse.optString("name", "User"))
-                                putString("nim", jsonResponse.optString("nim", "000000000"))
-                                putString("email", email)  // Simpan email
-                                apply()
-                            }
+                            val name = jsonResponse.optString("name", "User")
+                            val nim = jsonResponse.optString("nim", "000000000")
+                            val token = jsonResponse.optString("token", "") // Pastikan respons API mengembalikan token
+
+                            // PENTING: Gunakan sessionManager untuk menyimpan data login
+                            // Ini akan mengatur IS_LOGIN = true
+                            sessionManager.saveLoginSession(token, email, name, nim)
 
                             Toast.makeText(
                                 this@LoginActivity,

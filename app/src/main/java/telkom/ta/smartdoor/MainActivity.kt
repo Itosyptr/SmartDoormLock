@@ -2,8 +2,9 @@ package telkom.ta.smartdoor
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.SharedPreferences
+import android.graphics.BitmapFactory
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageButton
@@ -12,40 +13,31 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
+import de.hdodenhof.circleimageview.CircleImageView
 import telkom.ta.smartdoor.login.LoginActivity
+import telkom.ta.smartdoor.session.SessionManager
 import telkom.ta.smartdoor.ui.ProfileActivity
 import telkom.ta.smartdoor.verifikasi.VoiceVerificationActivity
+import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var imgProfile: ImageView
+    private lateinit var imgProfile: CircleImageView
     private lateinit var imgBackground: ImageView
     private lateinit var tvName: TextView
     private lateinit var tvNIM: TextView
     private lateinit var tvWelcome: TextView
     private lateinit var btnVerify: Button
     private lateinit var btnLogout: ImageButton
-    private lateinit var sharedPreferences: SharedPreferences
+
+    private lateinit var sessionManager: SessionManager
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Inisialisasi EncryptedSharedPreferences
-        val masterKey = MasterKey.Builder(this)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
-
-        sharedPreferences = EncryptedSharedPreferences.create(
-            this,
-            "secure_prefs",
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+        sessionManager = SessionManager(this)
 
         // Inisialisasi View
         imgProfile = findViewById(R.id.imgProfile)
@@ -57,13 +49,12 @@ class MainActivity : AppCompatActivity() {
         btnLogout = findViewById(R.id.btnLogout)
 
         // Cek apakah user sudah login
-        if (!isUserLoggedIn()) {
+        if (!sessionManager.isLoggedIn()) {
             redirectToLogin()
             return
         }
-
-        // Load user data
-        loadUserData()
+        // Tidak perlu memanggil displayUserProfile() di sini, cukup di onResume()
+        // karena onResume() akan dipanggil setelah onCreate() selesai.
 
         // Event: Tombol verifikasi suara
         btnVerify.setOnClickListener {
@@ -81,14 +72,13 @@ class MainActivity : AppCompatActivity() {
         btnLogout.setOnClickListener {
             showLogoutConfirmationDialog()
         }
-
     }
 
-
-    private fun isUserLoggedIn(): Boolean {
-        val name = sharedPreferences.getString("name", null)
-        val nim = sharedPreferences.getString("nim", null)
-        return !name.isNullOrEmpty() && !nim.isNullOrEmpty()
+    override fun onResume() {
+        super.onResume()
+        // Ini adalah tempat terbaik untuk memuat dan menampilkan data profil
+        // karena akan dipanggil setiap kali Activity aktif atau kembali dari background/Activity lain.
+        displayUserProfile()
     }
 
     private fun redirectToLogin() {
@@ -96,13 +86,42 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun loadUserData() {
-        val name = sharedPreferences.getString("name", "DJAROT") ?: "DJAROT"
-        val nim = sharedPreferences.getString("nim", "1191219911") ?: "1191219911"
+    private fun displayUserProfile() {
+        val profileData = sessionManager.getProfileData() // Data profil (diubah di ProfileActivity)
+        val userData = sessionManager.getUserData()     // Data sesi login (NIM awal saat login)
 
-        tvName.text = name
-        tvNIM.text = "Mahasiswa : $nim"
-        tvWelcome.text = "Selamat datang, $name!"
+        val nameToDisplay = profileData["name"] ?: userData["name"] ?: "Pengguna"
+        tvName.text = nameToDisplay
+
+        // FIX: Prioritaskan NIM dari data profil, jika tidak ada, gunakan NIM dari data login
+        val nimToDisplay = profileData["nim"] ?: userData["nim"] ?: "NIM Tidak Tersedia"
+        tvNIM.text = "Mahasiswa : $nimToDisplay"
+
+        tvWelcome.text = "Selamat datang, $nameToDisplay!"
+
+        val imageUriString = profileData["imageUri"]
+        if (!imageUriString.isNullOrEmpty()) {
+            try {
+                val imageUri = Uri.parse(imageUriString)
+                val inputStream = contentResolver.openInputStream(imageUri)
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+                imgProfile.setImageBitmap(bitmap)
+            } catch (e: IOException) {
+                e.printStackTrace()
+                Toast.makeText(this, "Gagal memuat gambar profil", Toast.LENGTH_SHORT).show()
+                imgProfile.setImageResource(R.drawable.ic_profile)
+            } catch (e: SecurityException) {
+                e.printStackTrace()
+                Toast.makeText(this, "Izin akses gambar tidak diberikan.", Toast.LENGTH_SHORT).show()
+                imgProfile.setImageResource(R.drawable.ic_profile)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this, "Kesalahan tak terduga saat memuat gambar.", Toast.LENGTH_SHORT).show()
+                imgProfile.setImageResource(R.drawable.ic_profile)
+            }
+        } else {
+            imgProfile.setImageResource(R.drawable.ic_profile)
+        }
     }
 
     private fun showLogoutConfirmationDialog() {
@@ -124,9 +143,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun logoutUser() {
-        sharedPreferences.edit().clear().apply()
+        sessionManager.logout()
 
-        // Redirect to login activity
         startActivity(
             Intent(this, LoginActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

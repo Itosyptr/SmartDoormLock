@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <!-- Background Merah -->
     <ImageView
         android:id="@+id/imgBackground"
         android:layout_width="0dp"
@@ -18,47 +17,46 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Foto Profil -->
-    <ImageView
+    <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/imgProfile"
         android:layout_width="53dp"
         android:layout_height="53dp"
         android:layout_marginStart="32dp"
         android:layout_marginTop="40dp"
-        android:background="@drawable/circle"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_profile"
+        android:src="@drawable/ic_profile" app:civ_border_color="@android:color/white"
+        app:civ_border_width="2dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/imgBackground" />
 
-    <!-- Nama dan NIM -->
     <TextView
         android:id="@+id/tvName"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         android:layout_marginTop="8dp"
         android:text="@string/profile"
         android:textColor="@android:color/white"
         android:textSize="16sp"
         android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end"
         app:layout_constraintStart_toEndOf="@id/imgProfile"
-        app:layout_constraintTop_toTopOf="@id/imgProfile" />
+        app:layout_constraintTop_toTopOf="@id/imgProfile"
+        app:layout_constraintEnd_toStartOf="@id/btnLogout" />
 
     <TextView
         android:id="@+id/tvNIM"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         android:text="@string/mahasiswa_nim"
         android:textColor="@android:color/white"
         android:textSize="14sp"
         app:layout_constraintStart_toEndOf="@id/imgProfile"
-        app:layout_constraintTop_toBottomOf="@id/tvName" />
-
-    <!-- Kotak Tengah -->
-
-    <!-- Tombol Verifikasi -->
+        app:layout_constraintTop_toBottomOf="@id/tvName"
+        app:layout_constraintEnd_toStartOf="@id/btnLogout" />
 
     <ImageButton
         android:id="@+id/btnLogout"

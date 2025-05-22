@@ -1,29 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">SmartDoor</string>
-    <string name="iv1">iv1</string>
-    <string name="profile">Profile</string>
-    <string name="mahasiswa_nim">Mahasiswa : NIM</string>
-    <string name="welcome">Welcome to DoorLock</string>
+
+    <string name="back_button">Tombol Kembali</string>
+    <string name="save_button">Tombol Simpan</string>
+    <string name="upload_image">Unggah Gambar</string>
+
+    <string name="welcome">Selamat Datang di SmartDoor</string>
+    <string name="enter_your_username">Masukkan Nama Pengguna Anda</string>
+    <string name="enter_your_password">Masukkan Kata Sandi Anda</string>
+    <string name="username">Nama Pengguna</string>
+    <string name="email">Email</string>
+    <string name="password">Kata Sandi</string>
+    <string name="login">LOGIN</string>
+    <string name="register">DAFTAR</string>
+    <string name="forget_password">Lupa Kata Sandi?</string>
+    <string name="already_have_an_account_login">Sudah punya akun? Masuk</string>
+    <string name="not_have_an_account_register">Belum punya akun? Daftar</string>
+
+    <string name="profile">Profil</string>
+    <string name="nama">Nama</string>
+    <string name="full_name">Nama Lengkap</string>
+    <string name="phone_number_label">NIM</string>
+    <string name="enter_phone_number_hint">Masukkan NIM</string>
+    <string name="bio_label">Bio</string>
+    <string name="bio_hint">Beritahu sesuatu tentang diri Anda</string>
+    <string name="jenis_kelamin">Jenis Kelamin</string>
+    <string name="gender_example">Contoh: Laki-laki / Perempuan</string> <string name="tanggal_lahir">Tanggal Lahir</string>
+    <string name="pilih_tanggal_lahir">Pilih Tanggal Lahir</string>
+
     <string name="verifikasi">Verifikasi Suara</string>
     <string name="pin_suara">Verifikasi Suara Anda</string>
-    <string name="upload_image">Upload Image\n</string>
-    <string name="full_name">Full Name</string>
-    <string name="gender_example">Jenis Kelamin</string>
-    <string name="gender">Gender</string>
-    <string name="nama">Nama</string>
-    <string name="save_button">Save Button</string>
-    <string name="back_button">Back Button</string>
-    <string name="jenis_kelamin">Jenis Kelamin</string>
-    <string name="tanggal_lahir">Tanggal Lahir</string>
-    <string name="pilih_tanggal_lahir">Pilih Tanggal Lahir</string>
-    <string name="enter_your_username">Enter Your Username</string>
-    <string name="enter_your_password">Enter Your Password</string>
-    <string name="register">REGISTER</string>
-    <string name="email">Email</string>
-    <string name="password">Password</string>
-    <string name="already_have_an_account_login">Already have an account? Login</string>
-    <string name="username">Username</string>
-    <string name="login">LOGIN</string>
-    <string name="forget_password">Forget Password?</string>
-    <string name="not_have_an_account_register">Not have an account? Register</string>
+
+    <string name="mahasiswa_nim">Mahasiswa : NIM</string>
+    <string name="iv1">iv1</string>
+    <string name="nim_label">NIM\n</string>
 </resources>
