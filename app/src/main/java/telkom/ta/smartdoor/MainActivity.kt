@@ -14,10 +14,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import de.hdodenhof.circleimageview.CircleImageView
-import telkom.ta.smartdoor.login.LoginActivity
-import telkom.ta.smartdoor.session.SessionManager
-import telkom.ta.smartdoor.ui.ProfileActivity
-import telkom.ta.smartdoor.verifikasi.VoiceVerificationActivity
+import telkom.ta.smartdoor.login.LoginActivity // Pastikan path import ini benar
+import telkom.ta.smartdoor.session.SessionManager // Pastikan path import ini benar
+import telkom.ta.smartdoor.ui.ProfileActivity // Pastikan path import ini benar
+import telkom.ta.smartdoor.verifikasi.VoiceVerificationActivity // Pastikan path import ini benar
+// Import untuk AddKeywordActivity (sesuaikan jika nama package atau activity berbeda)
+import telkom.ta.smartdoor.verifikasi.AddKeywordActivity
+
 import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
@@ -29,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvWelcome: TextView
     private lateinit var btnVerify: Button
     private lateinit var btnLogout: ImageButton
+    private lateinit var btnTambahSuara: Button // Deklarasi untuk tombol Tambah Suara
 
     private lateinit var sessionManager: SessionManager
 
@@ -47,19 +51,26 @@ class MainActivity : AppCompatActivity() {
         tvWelcome = findViewById(R.id.tvWelcome)
         btnVerify = findViewById(R.id.btnVerify)
         btnLogout = findViewById(R.id.btnLogout)
+        btnTambahSuara = findViewById(R.id.btnTambahSuara) // Inisialisasi tombol Tambah Suara
 
         // Cek apakah user sudah login
         if (!sessionManager.isLoggedIn()) {
             redirectToLogin()
             return
         }
-        // Tidak perlu memanggil displayUserProfile() di sini, cukup di onResume()
-        // karena onResume() akan dipanggil setelah onCreate() selesai.
 
         // Event: Tombol verifikasi suara
         btnVerify.setOnClickListener {
             Toast.makeText(this, "Verifikasi suara dimulai...", Toast.LENGTH_SHORT).show()
             startActivity(Intent(this, VoiceVerificationActivity::class.java))
+        }
+
+        // Event: Tombol Tambah Suara
+        btnTambahSuara.setOnClickListener {
+            Toast.makeText(this, "Membuka halaman tambah keyword...", Toast.LENGTH_SHORT).show()
+            // Pastikan AddKeywordActivity::class.java adalah nama Activity yang benar
+            // dan sudah diimpor dengan benar di bagian atas file.
+            startActivity(Intent(this, AddKeywordActivity::class.java))
         }
 
         // Event: Menuju ke halaman profil
@@ -78,11 +89,15 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         // Ini adalah tempat terbaik untuk memuat dan menampilkan data profil
         // karena akan dipanggil setiap kali Activity aktif atau kembali dari background/Activity lain.
-        displayUserProfile()
+        if (sessionManager.isLoggedIn()) { // Cek lagi jika user masih login
+            displayUserProfile()
+        }
     }
 
     private fun redirectToLogin() {
-        startActivity(Intent(this, LoginActivity::class.java))
+        startActivity(Intent(this, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        })
         finish()
     }
 
@@ -93,7 +108,6 @@ class MainActivity : AppCompatActivity() {
         val nameToDisplay = profileData["name"] ?: userData["name"] ?: "Pengguna"
         tvName.text = nameToDisplay
 
-        // FIX: Prioritaskan NIM dari data profil, jika tidak ada, gunakan NIM dari data login
         val nimToDisplay = profileData["nim"] ?: userData["nim"] ?: "NIM Tidak Tersedia"
         tvNIM.text = "Mahasiswa : $nimToDisplay"
 
@@ -103,24 +117,27 @@ class MainActivity : AppCompatActivity() {
         if (!imageUriString.isNullOrEmpty()) {
             try {
                 val imageUri = Uri.parse(imageUriString)
+                // Untuk keamanan dan best practice, pastikan URI ini adalah content URI yang valid
+                // dan aplikasi memiliki izin untuk membacanya jika berasal dari external storage.
                 val inputStream = contentResolver.openInputStream(imageUri)
                 val bitmap = BitmapFactory.decodeStream(inputStream)
                 imgProfile.setImageBitmap(bitmap)
+                inputStream?.close() // Jangan lupa menutup InputStream
             } catch (e: IOException) {
                 e.printStackTrace()
                 Toast.makeText(this, "Gagal memuat gambar profil", Toast.LENGTH_SHORT).show()
-                imgProfile.setImageResource(R.drawable.ic_profile)
+                imgProfile.setImageResource(R.drawable.ic_profile) // Fallback ke default
             } catch (e: SecurityException) {
                 e.printStackTrace()
                 Toast.makeText(this, "Izin akses gambar tidak diberikan.", Toast.LENGTH_SHORT).show()
-                imgProfile.setImageResource(R.drawable.ic_profile)
+                imgProfile.setImageResource(R.drawable.ic_profile) // Fallback ke default
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(this, "Kesalahan tak terduga saat memuat gambar.", Toast.LENGTH_SHORT).show()
-                imgProfile.setImageResource(R.drawable.ic_profile)
+                imgProfile.setImageResource(R.drawable.ic_profile) // Fallback ke default
             }
         } else {
-            imgProfile.setImageResource(R.drawable.ic_profile)
+            imgProfile.setImageResource(R.drawable.ic_profile) // Default jika tidak ada URI
         }
     }
 

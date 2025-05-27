@@ -26,7 +26,8 @@
     <string name="bio_label">Bio</string>
     <string name="bio_hint">Beritahu sesuatu tentang diri Anda</string>
     <string name="jenis_kelamin">Jenis Kelamin</string>
-    <string name="gender_example">Contoh: Laki-laki / Perempuan</string> <string name="tanggal_lahir">Tanggal Lahir</string>
+    <string name="gender_example">Contoh: Laki-laki / Perempuan</string>
+    <string name="tanggal_lahir">Tanggal Lahir</string>
     <string name="pilih_tanggal_lahir">Pilih Tanggal Lahir</string>
 
     <string name="verifikasi">Verifikasi Suara</string>
@@ -35,4 +36,7 @@
     <string name="mahasiswa_nim">Mahasiswa : NIM</string>
     <string name="iv1">iv1</string>
     <string name="nim_label">NIM\n</string>
+    <string name="tambah_suara">Tambah Suara</string>
+    <string name="tombol_logout">logout\n</string>
+    <string name="deskripsi_background_atas">background</string>
 </resources>
