@@ -24,11 +24,8 @@ import telkom.ta.smartdoor.R // Pastikan R diimpor dengan benar
 class AddKeywordActivity : AppCompatActivity() {
 
     private lateinit var tvStatus: TextView
-    // private lateinit var etKeywordName: EditText // Komentari atau hapus jika tidak dipakai lagi
     private lateinit var btnRecord: ImageButton
     private lateinit var btnSaveKeyword: Button
-    // private lateinit var tvRecordingTime: TextView // Komentari atau hapus jika MediaRecorder tidak dipakai
-
     private lateinit var speechRecognizer: SpeechRecognizer
     private var recognizedKeywordText: String? = null // Untuk menyimpan teks hasil STT
     private var isListening = false

@@ -32,8 +32,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvWelcome: TextView
     private lateinit var btnVerify: Button
     private lateinit var btnLogout: ImageButton
-    private lateinit var btnTambahSuara: Button // Deklarasi untuk tombol Tambah Suara
-
+    private lateinit var btnTambahSuara: Button
     private lateinit var sessionManager: SessionManager
 
     @SuppressLint("SetTextI18n")

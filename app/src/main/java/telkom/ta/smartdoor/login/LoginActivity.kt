@@ -19,15 +19,7 @@ import java.io.IOException
 
 class LoginActivity : AppCompatActivity() {
     private val client = OkHttpClient()
-    private lateinit var sessionManager: SessionManager // Deklarasi SessionManager
-
-    // Hapus companion object yang tidak perlu di sini, karena logout ditangani SessionManager
-    // companion object {
-    //     const val PREFS_NAME = "secure_prefs"
-    //     fun logout(sharedPreferences: SharedPreferences) {
-    //         sharedPreferences.edit().clear().apply()
-    //     }
-    // }
+    private lateinit var sessionManager: SessionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
