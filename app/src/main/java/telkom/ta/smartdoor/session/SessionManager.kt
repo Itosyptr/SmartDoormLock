@@ -8,97 +8,140 @@ class SessionManager(context: Context) {
 
     companion object {
         const val PREFS_NAME = "user_session"
-        const val USER_TOKEN = "user_token"
+        const val USER_ID = "user_id"
+        const val PROFILE_ID = "profile_id"
+        const val USERNAME = "username"
         const val USER_EMAIL = "user_email"
-        const val USER_NAME = "user_name" // Nama awal yang disimpan saat login
-        const val USER_NIM = "user_nim"   // NIM awal yang disimpan saat login
+        const val USER_TOKEN = "user_token"
         const val IS_LOGIN = "is_login"
 
-        // --- Konstanta untuk data profil (diperbarui: PHONE diganti NIM) ---
+        // Profile data constants
         const val PROFILE_NAME = "profile_name"
         const val PROFILE_BIO = "profile_bio"
-        const val PROFILE_NIM = "profile_nim" // <-- PERUBAHAN: Dulu PROFILE_PHONE, sekarang PROFILE_NIM
-        const val PROFILE_IMAGE_URI = "profile_image_uri" // Menyimpan URI gambar
+        const val PROFILE_NIM = "profile_nim"
+        const val PROFILE_IMAGE_URI = "profile_image_uri"
     }
 
     /**
-     * Menyimpan data login user
-     * Ini adalah data yang didapatkan saat user pertama kali login.
+     * Save login session data (updated to match new API structure)
+     * @param userId The user's unique ID from database
+     * @param profileId The profile's unique ID from database
+     * @param username The username used for login
+     * @param email The user's email address
+     * @param token Optional authentication token (if used)
      */
-    fun saveLoginSession(token: String, email: String, name: String, nim: String) {
+    fun saveLoginSession(userId: String, profileId: String, username: String, email: String, token: String? = null) {
         with(prefs.edit()) {
-            putString(USER_TOKEN, token)
+            putString(USER_ID, userId)
+            putString(PROFILE_ID, profileId)
+            putString(USERNAME, username)
             putString(USER_EMAIL, email)
-            putString(USER_NAME, name) // Nama dari sesi login
-            putString(USER_NIM, nim)   // NIM dari sesi login
+            token?.let { putString(USER_TOKEN, it) }
             putBoolean(IS_LOGIN, true)
             apply()
         }
     }
 
     /**
-     * Menyimpan data profil user
-     * Ini adalah data yang bisa diedit oleh user di ProfileActivity.
-     * NIM di sini akan menimpa/memperbarui NIM yang mungkin sudah ada dari sesi login.
+     * Save profile data that can be edited by user
+     * @param name User's display name
+     * @param bio User's biography
+     * @param nim User's NIM (student ID)
+     * @param imageUri URI of profile image (optional)
      */
-    fun saveProfileData(name: String, bio: String, nim: String?, imageUri: String?) { // <-- PERUBAHAN: Parameter 'phone' diganti 'nim'
+    fun saveProfileData(name: String, bio: String, nim: String?, imageUri: String?) {
         with(prefs.edit()) {
             putString(PROFILE_NAME, name)
             putString(PROFILE_BIO, bio)
-            putString(PROFILE_NIM, nim) // <-- PERUBAHAN: Menyimpan NIM ke kunci PROFILE_NIM
-            putString(PROFILE_IMAGE_URI, imageUri) // imageUri bisa null
+            putString(PROFILE_NIM, nim)
+            putString(PROFILE_IMAGE_URI, imageUri)
             apply()
         }
     }
 
     /**
-     * Mendapatkan token user
+     * Get basic user data from login session
+     */
+    fun getUserData(): Map<String, String?> {
+        return mapOf(
+            "userId" to prefs.getString(USER_ID, null),
+            "profileId" to prefs.getString(PROFILE_ID, null),
+            "username" to prefs.getString(USERNAME, null),
+            "email" to prefs.getString(USER_EMAIL, null),
+            "token" to prefs.getString(USER_TOKEN, null)
+        )
+    }
+
+    /**
+     * Get profile data (editable user information)
+     */
+    fun getProfileData(): Map<String, String?> {
+        return mapOf(
+            "name" to prefs.getString(PROFILE_NAME, null),
+            "bio" to prefs.getString(PROFILE_BIO, null),
+            "nim" to prefs.getString(PROFILE_NIM, null),
+            "imageUri" to prefs.getString(PROFILE_IMAGE_URI, null)
+        )
+    }
+
+    /**
+     * Get combined user data (login session + profile data)
+     * Profile data takes precedence over login session data
+     */
+    fun getCompleteUserData(): Map<String, String?> {
+        val userData = getUserData()
+        val profileData = getProfileData()
+
+        return mutableMapOf<String, String?>().apply {
+            putAll(userData)
+            // Profile name overrides username if available
+            profileData["name"]?.let { put("displayName", it) } ?: put("displayName", userData["username"])
+            putAll(profileData)
+        }
+    }
+
+    /**
+     * Get authentication token if available
      */
     fun getUserToken(): String? {
         return prefs.getString(USER_TOKEN, null)
     }
 
     /**
-     * Mendapatkan data user (login session data)
-     * Data ini merepresentasikan informasi awal saat user login.
-     */
-    fun getUserData(): Map<String, String?> {
-        return mapOf(
-            "email" to prefs.getString(USER_EMAIL, null),
-            "name" to prefs.getString(USER_NAME, null), // Nama dari sesi login
-            "nim" to prefs.getString(USER_NIM, null)    // NIM dari sesi login
-        )
-    }
-
-    /**
-     * Mendapatkan data profil user
-     * Data ini merepresentasikan informasi profil yang mungkin sudah diedit oleh user.
-     * Prioritaskan data dari sini untuk tampilan profil/dashboard.
-     */
-    fun getProfileData(): Map<String, String?> {
-        return mapOf(
-            "name" to prefs.getString(PROFILE_NAME, null),
-            "bio" to prefs.getString(PROFILE_BIO, null),
-            "nim" to prefs.getString(PROFILE_NIM, null), // <-- PERUBAHAN: Mengambil NIM dari kunci PROFILE_NIM
-            "imageUri" to prefs.getString(PROFILE_IMAGE_URI, null)
-        )
-    }
-
-    /**
-     * Mengecek status login
+     * Check if user is logged in
      */
     fun isLoggedIn(): Boolean {
         return prefs.getBoolean(IS_LOGIN, false)
     }
 
     /**
-     * Logout dan hapus semua data session dan profil
-     * Ini akan menghapus SEMUA data di file SharedPreferences 'user_session'.
+     * Clear all session data
      */
     fun logout() {
         with(prefs.edit()) {
             clear()
             apply()
         }
+    }
+
+    /**
+     * Get the current username (either from login or profile)
+     */
+    fun getUsername(): String? {
+        return prefs.getString(PROFILE_NAME, null) ?: prefs.getString(USERNAME, null)
+    }
+
+    /**
+     * Get the user ID
+     */
+    fun getUserId(): String? {
+        return prefs.getString(USER_ID, null)
+    }
+
+    /**
+     * Get the profile ID
+     */
+    fun getProfileId(): String? {
+        return prefs.getString(PROFILE_ID, null)
     }
 }

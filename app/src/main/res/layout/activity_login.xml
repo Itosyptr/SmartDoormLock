@@ -7,7 +7,6 @@
     android:background="@color/white"
     tools:context=".login.LoginActivity">
 
-    <!-- ProgressBar (invisible, centered) -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
@@ -23,7 +22,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <!-- Gambar atas (full lebar) -->
             <ImageView
                 android:id="@+id/image_logo"
                 android:layout_width="match_parent"
@@ -34,38 +32,36 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
 
-            <!-- Email -->
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/emailEditTextLayout"
+                android:id="@+id/usernameEditTextLayout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="88dp"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:hint="@string/email"
+                android:hint="@string/username"
                 app:boxStrokeColor="@color/maron"
                 app:boxStrokeWidth="2dp"
                 app:errorEnabled="true"
                 app:hintTextColor="@color/maron"
-                app:startIconDrawable="@drawable/baseline_email_24"
+                app:startIconDrawable="@drawable/baseline_person_24"
                 app:startIconTint="@color/maron"
                 app:layout_constraintTop_toBottomOf="@id/image_logo"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edt_Email"
+                    android:id="@+id/edt_Username"
                     android:layout_width="match_parent"
                     android:layout_height="58dp"
                     android:fontFamily="@font/poppins_semi_bold"
-                    android:inputType="textEmailAddress"
+                    android:inputType="text"
                     android:paddingStart="48dp"
                     android:paddingEnd="50dp"
                     android:textColor="@color/maron"
                     android:textSize="16sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Password -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/PasswordEditTextLayout"
                 android:layout_width="0dp"
@@ -82,7 +78,7 @@
                 app:hintTextColor="@color/maron"
                 app:startIconDrawable="@drawable/baseline_lock_24"
                 app:startIconTint="@color/maron"
-                app:layout_constraintTop_toBottomOf="@id/emailEditTextLayout"
+                app:layout_constraintTop_toBottomOf="@id/usernameEditTextLayout"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
@@ -98,7 +94,6 @@
                     android:textSize="16sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Tombol Login -->
             <Button
                 android:id="@+id/btnlogin"
                 android:layout_width="0dp"
@@ -116,7 +111,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
 
-            <!-- Teks Bawah -->
             <TextView
                 android:id="@+id/tv_Account"
                 android:layout_width="wrap_content"

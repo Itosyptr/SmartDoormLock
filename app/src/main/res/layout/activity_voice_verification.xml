@@ -10,28 +10,26 @@
     tools:context=".verifikasi.VoiceVerificationActivity">
 
     <!-- 🟡 Logo -->
-
-    <!-- 🟢 Teks Instruksi -->
     <ImageView
         android:id="@+id/imgLogo"
         android:layout_width="200dp"
         android:layout_height="200dp"
-        android:layout_marginTop="68dp"
+        android:layout_marginTop="64dp"
         android:contentDescription="Logo"
         android:scaleType="fitCenter"
         android:src="@drawable/logosd"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"/>
 
+    <!-- 🟢 Teks Instruksi -->
     <TextView
         android:id="@+id/tvInstruction"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Tekan tombol dan ucapkan: 'Pin'"
-        android:textSize="20sp"
+        android:text="Tekan tombol mic untuk verifikasi suara (3 detik)"
+        android:textSize="18sp"
         android:textStyle="bold"
         android:textColor="@color/black"
         android:textAlignment="center"
@@ -42,33 +40,34 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- 🔴 Tombol Rekam -->
+    <!-- 🔴 Tombol Mic -->
     <ImageButton
         android:id="@+id/btnRecord"
         android:layout_width="120dp"
         android:layout_height="120dp"
         android:layout_marginTop="24dp"
-        android:src="@drawable/ic_mic"
-        android:contentDescription="Rekam Suara"
+        android:src="@drawable/ic_mic_on"
         android:background="@drawable/circle_button_background"
+        android:contentDescription="Tombol Mic"
         android:padding="16dp"
         android:elevation="6dp"
         app:layout_constraintTop_toBottomOf="@id/tvInstruction"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- 🔵 Progress Bar -->
+    <!-- 🔵 ProgressBar -->
     <ProgressBar
         android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:visibility="gone"
-        style="@android:style/Widget.Material.ProgressBar.Large"
         android:indeterminateTint="@android:color/holo_red_dark"
         app:layout_constraintTop_toBottomOf="@id/btnRecord"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- 🟣 Teks Hasil -->
     <TextView
         android:id="@+id/tvResult"

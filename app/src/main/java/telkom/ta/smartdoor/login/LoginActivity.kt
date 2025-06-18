@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import telkom.ta.smartdoor.MainActivity
 import telkom.ta.smartdoor.R
 import telkom.ta.smartdoor.register.RegisterActivity
-import telkom.ta.smartdoor.session.SessionManager // Import SessionManager
+import telkom.ta.smartdoor.session.SessionManager
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -20,41 +20,38 @@ import java.io.IOException
 class LoginActivity : AppCompatActivity() {
     private val client = OkHttpClient()
     private lateinit var sessionManager: SessionManager
+    private lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        // Inisialisasi SessionManager
         sessionManager = SessionManager(this)
+        sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
 
-        // Pindahkan cek login ke sini dan gunakan SessionManager
         if (sessionManager.isLoggedIn()) {
-            // User sudah login, langsung ke MainActivity
             startActivity(Intent(this, MainActivity::class.java))
             finish()
-            return // Penting: Hentikan eksekusi onCreate agar tidak inisialisasi UI login
+            return
         }
 
-        // Inisialisasi komponen UI (hanya jika user BELUM login)
-        val edtEmail = findViewById<EditText>(R.id.edt_Email)
+        val edtUsername = findViewById<EditText>(R.id.edt_Username)
         val edtPassword = findViewById<EditText>(R.id.edt_Password)
         val btnLogin = findViewById<Button>(R.id.btnlogin)
         val tvRegister = findViewById<TextView>(R.id.tv_Register)
         val progressBar = findViewById<ProgressBar>(R.id.progressBar)
 
+        loadSavedUsername(edtUsername)
+
         btnLogin.setOnClickListener {
-            val email = edtEmail.text.toString().trim()
+            val username = edtUsername.text.toString().trim()
             val password = edtPassword.text.toString().trim()
 
-            if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Email dan Password harus diisi!", Toast.LENGTH_SHORT).show()
-            } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                edtEmail.error = "Format email tidak valid"
+            if (username.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "Username dan Password harus diisi!", Toast.LENGTH_SHORT).show()
             } else {
                 progressBar.visibility = View.VISIBLE
-                // Kirim SessionManager ke performLogin agar bisa menyimpan data
-                performLogin(email, password, progressBar)
+                performLogin(username, password, progressBar)
             }
         }
 
@@ -63,10 +60,28 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    // Hapus parameter SharedPreferences dari sini karena sudah ada sessionManager sebagai member
-    private fun performLogin(email: String, password: String, progressBar: ProgressBar) {
+    private fun loadSavedUsername(edtUsername: EditText) {
+        val savedUsername = sharedPreferences.getString("username", "")
+        if (!savedUsername.isNullOrEmpty()) {
+            edtUsername.setText(savedUsername)
+        }
+    }
+
+    private fun saveLoginData(username: String, userId: String, profileId: String, email: String) {
+        val editor = sharedPreferences.edit()
+        editor.putString("username", username)
+        editor.putString("userId", userId)
+        editor.putString("profileId", profileId)
+        editor.putString("email", email)
+        editor.apply()
+
+        // Also save to session manager
+        sessionManager.saveLoginSession(userId, profileId, username, email)
+    }
+
+    private fun performLogin(username: String, password: String, progressBar: ProgressBar) {
         val json = JSONObject().apply {
-            put("email", email)
+            put("username", username)
             put("password", password)
         }
 
@@ -95,49 +110,68 @@ class LoginActivity : AppCompatActivity() {
             override fun onResponse(call: Call, response: Response) {
                 runOnUiThread {
                     progressBar.visibility = View.GONE
+                    val responseBody = response.body?.string()
 
                     if (response.isSuccessful) {
-                        val responseBody = response.body?.string()
-                        Log.d("LoginSuccess", "Response: $responseBody")
-
                         try {
                             val jsonResponse = JSONObject(responseBody ?: "{}")
-                            val name = jsonResponse.optString("name", "User")
-                            val nim = jsonResponse.optString("nim", "000000000")
-                            val token = jsonResponse.optString("token", "") // Pastikan respons API mengembalikan token
+                            val message = jsonResponse.optString("message", "")
 
-                            // PENTING: Gunakan sessionManager untuk menyimpan data login
-                            // Ini akan mengatur IS_LOGIN = true
-                            sessionManager.saveLoginSession(token, email, name, nim)
+                            if (message == "Login successful") {
+                                val userObject = jsonResponse.getJSONObject("user")
+                                val userId = userObject.getString("id")
+                                val profileId = userObject.getString("profileId")
+                                val username = userObject.getString("username")
+                                val email = userObject.getString("email")
 
-                            Toast.makeText(
-                                this@LoginActivity,
-                                "Login Berhasil",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                                // Save all necessary data
+                                saveLoginData(username, userId, profileId, email)
 
-                            startActivity(Intent(this@LoginActivity, MainActivity::class.java))
-                            finish()
+                                Toast.makeText(
+                                    this@LoginActivity,
+                                    "Login Berhasil - Selamat datang, $username!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
 
+                                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                                finish()
+                            } else {
+                                Toast.makeText(
+                                    this@LoginActivity,
+                                    "Login gagal: $message",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         } catch (e: Exception) {
                             Log.e("LoginParseError", "Gagal parsing JSON: ${e.message}")
-                            Toast.makeText(this@LoginActivity, "Terjadi kesalahan pada data login", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this@LoginActivity,
+                                "Terjadi kesalahan saat memproses data login",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
-
                     } else {
-                        val errorCode = response.code
-                        val errorMessage = when (errorCode) {
-                            401 -> "Email atau password salah"
-                            404 -> "User tidak ditemukan"
-                            500 -> "Server error. Coba lagi nanti."
-                            else -> "Login gagal (Error $errorCode)"
+                        try {
+                            val errorResponse = JSONObject(responseBody ?: "{}")
+                            val errorMessage = errorResponse.optString("error",
+                                when (response.code) {
+                                    400 -> "Username atau password salah"
+                                    500 -> "Server error. Coba lagi nanti."
+                                    else -> "Login gagal (Error ${response.code})"
+                                }
+                            )
+                            Toast.makeText(
+                                this@LoginActivity,
+                                errorMessage,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } catch (e: Exception) {
+                            Toast.makeText(
+                                this@LoginActivity,
+                                "Terjadi kesalahan saat login",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
-
-                        Toast.makeText(
-                            this@LoginActivity,
-                            errorMessage,
-                            Toast.LENGTH_SHORT
-                        ).show()
                     }
                 }
             }
