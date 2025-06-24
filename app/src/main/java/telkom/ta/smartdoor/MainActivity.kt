@@ -20,7 +20,6 @@ import telkom.ta.smartdoor.login.LoginActivity
 import telkom.ta.smartdoor.session.SessionManager
 import telkom.ta.smartdoor.ui.ProfileActivity
 import telkom.ta.smartdoor.verifikasi.VoiceVerificationActivity
-import telkom.ta.smartdoor.verifikasi.AddKeywordActivity
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
@@ -61,7 +60,7 @@ class MainActivity : AppCompatActivity() {
         tvWelcome = findViewById(R.id.tvWelcome)
         btnVerify = findViewById(R.id.btnVerify)
         btnLogout = findViewById(R.id.btnLogout)
-        btnTambahSuara = findViewById(R.id.btnTambahSuara)
+
     }
 
     private fun checkLoginStatus() {
@@ -83,9 +82,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, VoiceVerificationActivity::class.java))
         }
 
-        btnTambahSuara.setOnClickListener {
-            startActivity(Intent(this, AddKeywordActivity::class.java))
-        }
 
         imgProfile.setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))

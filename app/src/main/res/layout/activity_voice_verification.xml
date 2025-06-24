@@ -9,12 +9,11 @@
     android:background="@color/white"
     tools:context=".verifikasi.VoiceVerificationActivity">
 
-    <!-- 🟡 Logo -->
     <ImageView
         android:id="@+id/imgLogo"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_marginTop="64dp"
+        android:layout_width="180dp"
+        android:layout_height="180dp"
+        android:layout_marginTop="48dp"
         android:contentDescription="Logo"
         android:scaleType="fitCenter"
         android:src="@drawable/logosd"
@@ -22,66 +21,70 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- 🟢 Teks Instruksi -->
     <TextView
         android:id="@+id/tvInstruction"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Tekan tombol mic untuk verifikasi suara (3 detik)"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:fontFamily="@font/poppins_medium"
+        android:gravity="center"
+        android:padding="8dp"
+        android:textAlignment="center"
+        android:textColor="@color/black"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:textColor="@color/black"
-        android:textAlignment="center"
-        android:gravity="center"
-        android:padding="16dp"
-        android:fontFamily="@font/poppins_medium"
-        app:layout_constraintTop_toBottomOf="@id/imgLogo"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/imgLogo"
+        tools:text="Tekan tombol mic untuk verifikasi suara (5 detik)" />
 
-    <!-- 🔴 Tombol Mic -->
     <ImageButton
         android:id="@+id/btnRecord"
         android:layout_width="120dp"
         android:layout_height="120dp"
         android:layout_marginTop="24dp"
-        android:src="@drawable/ic_mic_on"
         android:background="@drawable/circle_button_background"
         android:contentDescription="Tombol Mic"
-        android:padding="16dp"
         android:elevation="6dp"
-        app:layout_constraintTop_toBottomOf="@id/tvInstruction"
+        android:padding="16dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_mic"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/tvInstruction" />
 
-    <!-- 🔵 ProgressBar -->
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="32dp"
+        android:indeterminateTint="@color/maron"
         android:visibility="gone"
-        android:indeterminateTint="@android:color/holo_red_dark"
-        app:layout_constraintTop_toBottomOf="@id/btnRecord"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/btnRecord"
+        tools:visibility="visible"/>
 
-    <!-- 🟣 Teks Hasil -->
     <TextView
         android:id="@+id/tvResult"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:text=""
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:fontFamily="@font/poppins_bold"
+        android:gravity="center"
+        android:textColor="@color/maron"
         android:textSize="16sp"
         android:textStyle="bold"
-        android:textColor="@color/maron"
-        android:fontFamily="@font/poppins_bold"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/progressBar"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/progressBar"
+        tools:text="✓ Verifikasi Gagal! Silakan coba lagi."
+        tools:visibility="visible"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,18 +1,12 @@
 package telkom.ta.smartdoor.verifikasi
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.media.MediaRecorder
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.*
 import android.util.Log
 import android.view.View
-import android.widget.ImageButton
-import android.widget.ProgressBar
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -27,75 +21,68 @@ import java.io.IOException
 
 class VoiceVerificationActivity : AppCompatActivity() {
 
+    // Deklarasi View
     private lateinit var micButton: ImageButton
     private lateinit var instructionText: TextView
     private lateinit var resultText: TextView
     private lateinit var progressBar: ProgressBar
-    private lateinit var sessionManager: SessionManager
 
+    // Variabel lainnya
+    private lateinit var sessionManager: SessionManager
     private var mediaRecorder: MediaRecorder? = null
     private var audioFile: File? = null
     private var isRecording = false
     private var currentUsername: String = ""
-
     private val client = OkHttpClient()
+
+    // Konstanta untuk request permission
     private val RECORD_AUDIO_REQUEST_CODE = 1
-    private val RECORDING_DURATION = 3000L // 3 detik
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_voice_verification)
 
-        // Initialize views
+        initializeViews()
+
+        sessionManager = SessionManager(this)
+        currentUsername = sessionManager.getUserData()["username"]?.trim() ?: ""
+
+        setupUI()
+
+        micButton.setOnClickListener {
+            if (checkPermission()) {
+                toggleRecording()
+            } else {
+                requestPermission()
+            }
+        }
+    }
+
+    private fun initializeViews() {
         micButton = findViewById(R.id.btnRecord)
         instructionText = findViewById(R.id.tvInstruction)
         resultText = findViewById(R.id.tvResult)
         progressBar = findViewById(R.id.progressBar)
-
-        // Initialize SessionManager
-        sessionManager = SessionManager(this)
-
-        // Load username from session
-        loadUsername()
-
-        setupUI()
-        setupButtonListener()
-    }
-
-    private fun loadUsername() {
-        // Get username from SessionManager which uses SharedPreferences
-        val userData = sessionManager.getUserData()
-        currentUsername = userData["username"] ?: ""
-
-        Log.d("VoiceVerification", "Loaded username: $currentUsername")
     }
 
     private fun setupUI() {
         if (currentUsername.isEmpty()) {
-            instructionText.text = "Silakan login terlebih dahulu"
+            instructionText.text = "Sesi tidak valid, silakan login kembali."
             micButton.isEnabled = false
-            Toast.makeText(this, "Username tidak ditemukan. Silakan login.", Toast.LENGTH_LONG).show()
         } else {
-            instructionText.text = "Tekan tombol mic untuk verifikasi suara (3 detik)"
+            instructionText.text = "Tekan tombol mic untuk verifikasi suara (5 detik)"
             micButton.isEnabled = true
         }
         resultText.visibility = View.GONE
         progressBar.visibility = View.GONE
     }
 
-    private fun setupButtonListener() {
-        micButton.setOnClickListener {
-            if (currentUsername.isEmpty()) {
-                Toast.makeText(this, "Silakan login terlebih dahulu", Toast.LENGTH_LONG).show()
-                return@setOnClickListener
-            }
+    private fun checkPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+    }
 
-            if (checkAudioPermission()) {
-                toggleRecording()
-            } else {
-                requestAudioPermission()
-            }
-        }
+    private fun requestPermission() {
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), RECORD_AUDIO_REQUEST_CODE)
     }
 
     private fun toggleRecording() {
@@ -106,237 +93,274 @@ class VoiceVerificationActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkAudioPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.RECORD_AUDIO
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun requestAudioPermission() {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(Manifest.permission.RECORD_AUDIO),
-            RECORD_AUDIO_REQUEST_CODE
-        )
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            RECORD_AUDIO_REQUEST_CODE -> {
-                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    if (currentUsername.isNotEmpty()) {
-                        startRecording()
-                    }
-                } else {
-                    Toast.makeText(this, "Izin akses mikrofon diperlukan", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
     private fun startRecording() {
         try {
-            // Create dengan format yang lebih baik
-            audioFile = File.createTempFile(
-                "voice_${currentUsername}_${System.currentTimeMillis()}",
-                ".3gp",
-                cacheDir
-            )
+            // Menggunakan format .wav sesuai dengan ekspektasi backend
+            audioFile = File.createTempFile("verify_${currentUsername}_${System.currentTimeMillis()}", ".wav", cacheDir)
 
             mediaRecorder = MediaRecorder().apply {
                 setAudioSource(MediaRecorder.AudioSource.MIC)
-                setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB) // Wide Band untuk kualitas lebih baik
-                setAudioSamplingRate(16000) // 16kHz
-                setAudioEncodingBitRate(23850) // Higher bitrate
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                // Set sample rate ke 16kHz sesuai dengan backend
+                setAudioSamplingRate(16000)
+                setAudioEncodingBitRate(64000)
+                setAudioChannels(1) // Mono channel sesuai backend
                 setOutputFile(audioFile!!.absolutePath)
                 prepare()
                 start()
             }
 
             isRecording = true
-            micButton.setImageResource(R.drawable.ic_mic)
-            instructionText.text = "Merekam... ucapkan nama Anda dengan jelas (5 detik)"
+            micButton.setImageResource(R.drawable.ic_stop)
+            instructionText.text = "Merekam... ucapkan \"Buka Pintu\" dengan jelas..."
             resultText.visibility = View.GONE
 
-            // Perpanjang durasi recording
             Handler(Looper.getMainLooper()).postDelayed({
                 if (isRecording) {
                     stopRecording()
                 }
-            }, 5000L) // 5 detik lebih baik
+            }, 5000L) // Durasi rekam 5 detik
 
-        } catch (e: Exception) {
-            Log.e("VoiceVerification", "Gagal memulai perekaman: ${e.message}")
-            Toast.makeText(this, "Gagal memulai perekaman: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+        } catch (e: IOException) {
+            Log.e("VoiceVerification", "Gagal memulai perekaman", e)
+            Toast.makeText(this, "Gagal memulai perekaman: ${e.message}", Toast.LENGTH_SHORT).show()
             resetUI()
         }
     }
 
-
-
-
     private fun stopRecording() {
         if (!isRecording) return
-
         try {
-            mediaRecorder?.apply {
+            mediaRecorder?.run {
                 stop()
                 release()
             }
+        } catch (e: RuntimeException) {
+            Log.e("VoiceVerification", "Gagal menghentikan perekaman", e)
+        } finally {
             mediaRecorder = null
             isRecording = false
-
-            instructionText.text = "Memverifikasi suara..."
             progressBar.visibility = View.VISIBLE
-
-            // Send audio to verification API
+            instructionText.text = "Memverifikasi suara..."
+            micButton.isEnabled = false
             sendAudioToAPI()
-
-        } catch (e: Exception) {
-            Log.e("VoiceVerification", "Gagal menghentikan perekaman: ${e.message}")
-            Toast.makeText(this, "Gagal menghentikan perekaman", Toast.LENGTH_SHORT).show()
-            resetUI()
         }
     }
 
     private fun sendAudioToAPI() {
-        if (audioFile == null || !audioFile!!.exists()) {
-            showError("File audio tidak valid")
+        if (audioFile == null || !audioFile!!.exists() || audioFile!!.length() == 0L) {
+            showError("File audio tidak valid atau kosong. Coba lagi.")
+            cleanupFile()
             return
         }
 
+        Log.d("VoiceVerification", "Mengirim file: ${audioFile!!.name}, Ukuran: ${audioFile!!.length()} bytes")
+
+        // Sesuaikan dengan format backend API yang mengharapkan 'audio' dan 'username'
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
-            .addFormDataPart(
-                "audio",
-                audioFile!!.name,
-                audioFile!!.asRequestBody("audio/3gpp".toMediaType())
-            )
-            .addFormDataPart("username", currentUsername) // Send username for verification
+            .addFormDataPart("audio", audioFile!!.name, audioFile!!.asRequestBody("audio/wav".toMediaType()))
+            .addFormDataPart("username", currentUsername) // Tambahkan username sesuai backend
             .build()
 
         val request = Request.Builder()
             .url("https://smartdoorlock.cloud/api/detect/suara")
             .post(requestBody)
+            .addHeader("Accept", "application/json")
             .build()
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 runOnUiThread {
-                    Log.e("VoiceVerification", "API call failed: ${e.message}")
-                    showError("Gagal terhubung ke server")
+                    showError("Gagal menghubungi server: ${e.message}")
+                    cleanupFile()
                 }
             }
 
             override fun onResponse(call: Call, response: Response) {
+                val responseBody = response.body?.string()
                 runOnUiThread {
-                    handleAPIResponse(response)
+                    try {
+                        Log.d("VoiceVerification", "Response: [${response.code}] $responseBody")
+
+                        if (!response.isSuccessful || responseBody == null) {
+                            showError("Gagal mendapatkan respon dari server (Error ${response.code})")
+                            return@runOnUiThread
+                        }
+
+                        val json = JSONObject(responseBody)
+                        if (json.has("error")) {
+                            showError("Server Error: ${json.getString("error")}")
+                            return@runOnUiThread
+                        }
+
+                        // Backend mengembalikan struktur JSON yang berbeda
+                        val prediction = json.optString("prediction", "unknown")
+                        val confidence = json.optDouble("confidence", 0.0)
+                        val confidencePercent = json.optDouble("confidence_percent", confidence * 100)
+                        val certaintyLevel = json.optString("certainty_level", "UNKNOWN")
+                        val predictionLogic = json.optString("prediction_logic", "")
+
+                        // Log informasi tambahan untuk debugging
+                        Log.d("VoiceVerification", "Prediction: $prediction")
+                        Log.d("VoiceVerification", "Confidence: $confidence")
+                        Log.d("VoiceVerification", "Certainty Level: $certaintyLevel")
+                        Log.d("VoiceVerification", "Logic: $predictionLogic")
+
+                        verifyPrediction(prediction, confidencePercent, certaintyLevel, predictionLogic)
+
+                    } catch (e: Exception) {
+                        Log.e("VoiceVerification", "Gagal memproses JSON", e)
+                        showError("Gagal memproses respon server.")
+                    } finally {
+                        cleanupFile()
+                    }
                 }
             }
         })
     }
 
-    private fun handleAPIResponse(response: Response) {
-        try {
-            val responseBody = response.body?.string()
-            Log.d("VoiceVerification", "API Response: $responseBody")
+    /**
+     * Verifikasi prediksi dengan logika yang disesuaikan dengan backend smart detector
+     */
+    private fun verifyPrediction(prediction: String, confidencePercent: Double, certaintyLevel: String, predictionLogic: String) {
+        Log.d("VoiceVerification", "Verifying - Prediction: '$prediction' | User: '$currentUsername' | Confidence: $confidencePercent% | Level: $certaintyLevel")
 
-            if (!response.isSuccessful || responseBody == null) {
-                showError("Gagal memverifikasi suara (${response.code})")
-                return
-            }
+        // Ekstrak nama dari prediksi (menangani format "suara tambahan nama" atau "NIM-nama")
+        val extractedName = extractNameFromPrediction(prediction)
 
-            val jsonResponse = JSONObject(responseBody)
-
-            when {
-                jsonResponse.has("error") -> {
-                    showError(jsonResponse.getString("error"))
-                }
-                jsonResponse.has("prediction") -> {
-                    val prediction = jsonResponse.getString("prediction")
-                    verifyPrediction(prediction)
-                }
-                else -> {
-                    showError("Respon tidak dikenali dari server")
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("VoiceVerification", "Error parsing response: ${e.message}")
-            showError("Error memproses respon")
-        } finally {
-            cleanupAudioFile()
-        }
-    }
-
-    private fun verifyPrediction(prediction: String) {
-        Log.d("VoiceVerification", "Predicted: '$prediction', Expected: '$currentUsername'")
+        // Cek apakah nama yang diekstrak cocok dengan username yang login
+        val isMatch = currentUsername.isNotEmpty() &&
+                extractedName.equals(currentUsername, ignoreCase = true)
 
         when {
-            prediction == "unknown" -> {
-                showError("Suara tidak dapat dikenali. Coba lagi dengan suara yang lebih jelas.")
+            // KASUS 1: Verifikasi Berhasil (Nama Cocok)
+            isMatch -> {
+                when (certaintyLevel) {
+                    "HIGH" -> {
+                        showSuccess("✓ Verifikasi Berhasil!\nSelamat datang, $currentUsername\nKeyakinan: ${String.format("%.1f", confidencePercent)}% (Tinggi)")
+                    }
+                    "MEDIUM" -> {
+                        if (confidencePercent >= 50.0) {
+                            showSuccess("✓ Verifikasi Berhasil!\nSelamat datang, $currentUsername\nKeyakinan: ${String.format("%.1f", confidencePercent)}% (Sedang)")
+                        } else {
+                            showWarning("Keyakinan sedang (${String.format("%.1f", confidencePercent)}%).\nCoba lagi dengan suara lebih jelas.")
+                        }
+                    }
+                    "LOW" -> {
+                        showWarning("Keyakinan rendah (${String.format("%.1f", confidencePercent)}%).\nCoba lagi dengan suara lebih jelas dan lingkungan lebih tenang.")
+                    }
+                    else -> {
+                        showWarning("Keyakinan sangat rendah.\nPastikan Anda berbicara dengan jelas.")
+                    }
+                }
             }
-            prediction.contains("Error") -> {
-                showError("Terjadi kesalahan saat memproses audio. Coba lagi.")
+
+            // KASUS 2: Prediksi tidak pasti atau error
+            prediction.equals("uncertain", ignoreCase = true) ||
+                    prediction.equals("error", ignoreCase = true) ||
+                    prediction.equals("unknown", ignoreCase = true) -> {
+                showError("Suara tidak dapat diidentifikasi.\nPastikan Anda berbicara dengan jelas dan lingkungan tidak terlalu bising.")
             }
-            prediction.equals(currentUsername, ignoreCase = true) -> {
-                showSuccess("✓ Verifikasi suara berhasil! Selamat datang, $currentUsername")
-                // Add success actions here
+
+            // KASUS 3: Terdeteksi sebagai orang lain
+            extractedName.isNotEmpty() && !extractedName.equals("unknown", ignoreCase = true) -> {
+                showError("Verifikasi Gagal!\nSuara terdeteksi sebagai: $extractedName\n(Keyakinan: ${String.format("%.1f", confidencePercent)}%)")
             }
+
+            // KASUS 4: Tidak ada nama yang terdeteksi atau tidak dikenal
             else -> {
-                showError("Suara tidak cocok. Terdeteksi: '$prediction', Diharapkan: '$currentUsername'")
+                showError("Suara tidak dikenali atau tidak terdaftar.\nPastikan suara Anda sudah terdaftar dalam sistem.")
             }
         }
     }
 
-    private fun showSuccess(message: String) {
+    /**
+     * Helper function untuk ekstraksi nama dari prediksi
+     * Menangani format seperti "suara tambahan nama" atau "NIM-nama"
+     * ===== BAGIAN INI DIPERBARUI =====
+     */
+    private fun extractNameFromPrediction(prediction: String): String {
+        var processedPrediction = prediction.trim()
+
+        // Hapus prefix "suara tambahan " jika ada
+        if (processedPrediction.startsWith("suara tambahan ", ignoreCase = true)) {
+            processedPrediction = processedPrediction.substring("suara tambahan ".length).trim()
+        }
+
+        // Jika ada format "NIM-nama", ambil bagian nama
+        if (processedPrediction.contains("-")) {
+            val parts = processedPrediction.split("-")
+            if (parts.size >= 2) {
+                // Gabungkan semua bagian setelah NIM
+                processedPrediction = parts.drop(1).joinToString(" ").trim()
+            }
+        }
+
+        // [PERUBAHAN] Membersihkan tambahan " WAV" dari prediksi
+        processedPrediction = processedPrediction.replace(" WAV", "", ignoreCase = true)
+
+        return processedPrediction.trim()
+    }
+
+    private fun showSuccess(msg: String) {
         progressBar.visibility = View.GONE
         resultText.visibility = View.VISIBLE
-        resultText.text = message
+        resultText.text = msg
         resultText.setTextColor(ContextCompat.getColor(this, R.color.green_success))
+        micButton.setImageResource(R.drawable.ic_mic)
+        micButton.isEnabled = true
+        instructionText.text = "Verifikasi berhasil!"
+    }
+
+    private fun showWarning(msg: String) {
+        progressBar.visibility = View.GONE
+        resultText.visibility = View.VISIBLE
+        resultText.text = msg
+        resultText.setTextColor(ContextCompat.getColor(this, android.R.color.holo_orange_dark))
         resetUI()
     }
 
-    private fun showError(message: String) {
+    private fun showError(msg: String) {
         progressBar.visibility = View.GONE
         resultText.visibility = View.VISIBLE
-        resultText.text = message
+        resultText.text = msg
         resultText.setTextColor(ContextCompat.getColor(this, R.color.red_error))
         resetUI()
     }
 
     private fun resetUI() {
         micButton.setImageResource(R.drawable.ic_mic)
-        instructionText.text = "Tekan tombol mic untuk verifikasi suara (3 detik)"
+        instructionText.text = "Tekan tombol mic untuk verifikasi suara (5 detik)"
         isRecording = false
         micButton.isEnabled = true
     }
 
-    private fun cleanupAudioFile() {
+    private fun cleanupFile() {
         try {
             audioFile?.delete()
-        } catch (e: Exception) {
-            Log.e("VoiceVerification", "Gagal menghapus file audio: ${e.message}")
+        } catch (_: Exception) {
+            // Abaikan
         }
         audioFile = null
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == RECORD_AUDIO_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Izin diberikan. Silakan tekan tombol mic lagi.", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Izin mikrofon dibutuhkan untuk fitur ini.", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         mediaRecorder?.release()
-        cleanupAudioFile()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        if (isRecording) {
-            stopRecording()
-        }
+        mediaRecorder = null
+        cleanupFile()
     }
 }

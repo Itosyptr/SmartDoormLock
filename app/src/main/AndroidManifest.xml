@@ -19,12 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartDoor"
         tools:targetApi="31" >
-        <activity
-            android:name=".verifikasi.AddKeywordActivity"
-            android:exported="false" />
-        <activity
-            android:name=".jardo"
-            android:exported="false" />
+
         <activity
             android:name=".verifikasi.VoiceVerificationActivity"
             android:exported="false" />
@@ -40,10 +35,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="false" />
-        <activity
-            android:name=".AddKeywordActivity"
-            android:exported="true" >
-        </activity>
+
         <activity
             android:name=".ui.SplashScreen"
             android:exported="true" >
