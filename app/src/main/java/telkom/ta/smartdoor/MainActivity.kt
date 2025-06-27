@@ -23,6 +23,8 @@ import telkom.ta.smartdoor.verifikasi.VoiceVerificationActivity
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
+import androidx.core.net.toUri
+import androidx.core.graphics.drawable.toDrawable
 
 class MainActivity : AppCompatActivity() {
 
@@ -33,7 +35,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvWelcome: TextView
     private lateinit var btnVerify: Button
     private lateinit var btnLogout: ImageButton
-    private lateinit var btnTambahSuara: Button
+
     private lateinit var sessionManager: SessionManager
     private lateinit var sharedPreferences: SharedPreferences
     private val client = OkHttpClient()
@@ -135,7 +137,7 @@ class MainActivity : AppCompatActivity() {
                         // Extract profile data
                         val name = profileObject.optString("username", "User") // Using username as name if name field doesn't exist
                         val nim = profileObject.getString("nim")
-                        val email = profileObject.optString("email", "")
+                        profileObject.optString("email", "")
 
                         // Update UI with fresh data
                         displayProfile(name, nim)
@@ -182,6 +184,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun displayProfile(name: String, nim: String) {
         runOnUiThread {
             tvName.text = name
@@ -220,7 +223,7 @@ class MainActivity : AppCompatActivity() {
 
         if (!imageUriString.isNullOrEmpty()) {
             try {
-                val imageUri = Uri.parse(imageUriString)
+                val imageUri = imageUriString.toUri()
                 contentResolver.openInputStream(imageUri)?.use { inputStream ->
                     val bitmap = BitmapFactory.decodeStream(inputStream)
                     imgProfile.setImageBitmap(bitmap)
@@ -240,7 +243,7 @@ class MainActivity : AppCompatActivity() {
             .setView(dialogView)
             .create()
 
-        dialog.window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.window?.setBackgroundDrawable(android.graphics.Color.TRANSPARENT.toDrawable())
 
         dialogView.findViewById<Button>(R.id.btnYa).setOnClickListener {
             logoutUser()

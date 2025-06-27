@@ -33,9 +33,29 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
+    // Blok Packaging yang sudah diperbarui
+    packaging {
+        resources {
+            // Menambahkan daftar file yang akan dikecualikan
+            excludes += "META-INF/DEPENDENCIES"
+            excludes += "META-INF/LICENSE"
+            excludes += "META-INF/LICENSE.txt"
+            excludes += "META-INF/license.txt"
+            excludes += "META-INF/NOTICE"
+            excludes += "META-INF/NOTICE.txt"
+            excludes += "META-INF/notice.txt"
+            excludes += "META-INF/ASL2.0"
+            excludes += "META-INF/*.kotlin_module"
+            excludes += "META-INF/INDEX.LIST"
+            // BARIS BARU UNTUK MEMPERBAIKI EROR
+            excludes += "META-INF/io.netty.versions.properties"
+        }
+    }
 }
 
 dependencies {
+    // Core AndroidX dependencies
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -46,18 +66,23 @@ dependencies {
     implementation(libs.androidx.preference.ktx)
     implementation(libs.androidx.security.crypto)
 
-    // Tambahkan OkHttp dengan salah satu cara berikut:
-
-    // Cara 1: Jika menggunakan version catalog (direkomendasikan)
+    // Networking - OkHttp with latest stable version
     implementation(libs.okhttp)
 
-
-    // Atau Cara 2: Langsung dengan string
-    // implementation("com.squareup.okhttp3:okhttp:4.10.0")
-
-    // CircleImageView untuk foto profil
+    // UI
     implementation(libs.circleimageview)
 
+    // MQTT Dependencies - Updated versions for better Kotlin compatibility
+    implementation(libs.hivemq.mqtt.client)
+
+    // JSON handling
+    implementation(libs.org.json)
+
+    // Coroutines
+    implementation(libs.org.jetbrains.kotlinx.coroutines.android)
+    implementation(libs.org.jetbrains.kotlinx.coroutines.core)
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
