@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Atribut kustom untuk warna latar belakang utama dan teks -->
+    <attr name="backgroundColor" format="color" />
+    <attr name="textColorPrimary" format="color" />
+    <attr name="textColorSecondary" format="color" />
+    <!-- Atribut cardBackgroundColor bisa dihapus karena kita akan menggunakan atribut standar -->
+</resources>

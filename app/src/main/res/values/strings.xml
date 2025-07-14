@@ -39,4 +39,7 @@
     <string name="tambah_suara">Tambah Suara</string>
     <string name="tombol_logout">logout\n</string>
     <string name="deskripsi_background_atas">background</string>
+    <string name="nim_hint">Nim Mahasiswa</string>
+    <string name="title_activity_admin_auth_selection">AdminAuthSelectionActivity</string>
+    <string name="login_sebagai_admin">Login Sebagai Admin</string>
 </resources>

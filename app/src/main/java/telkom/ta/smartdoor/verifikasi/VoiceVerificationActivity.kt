@@ -11,11 +11,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-// Impor HiveMQ yang diperlukan
 import com.hivemq.client.mqtt.MqttClient
 import com.hivemq.client.mqtt.datatypes.MqttQos
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.*
@@ -23,6 +23,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.asRequestBody
 import org.json.JSONObject
 import telkom.ta.smartdoor.R
+import telkom.ta.smartdoor.database.AppDatabase
+import telkom.ta.smartdoor.database.VerificationLog
 import telkom.ta.smartdoor.session.SessionManager
 import java.io.File
 import java.io.IOException
@@ -30,13 +32,13 @@ import java.util.UUID
 
 class VoiceVerificationActivity : AppCompatActivity() {
 
-    // --- Properti UI (DITAMBAHKAN 1) ---
+    // --- Properti UI ---
     private lateinit var statusIndicator: View
-    // ------
     private lateinit var micButton: ImageButton
     private lateinit var instructionText: TextView
     private lateinit var resultText: TextView
     private lateinit var progressBar: ProgressBar
+    private lateinit var btnBack: ImageButton
     private var mediaRecorder: MediaRecorder? = null
     private var audioFile: File? = null
     private var isRecording = false
@@ -45,10 +47,13 @@ class VoiceVerificationActivity : AppCompatActivity() {
     private var currentUsername: String = ""
     private var confidencePercent: Double = 0.0
 
-    // Properti MQTT HiveMQ
+    // --- Properti MQTT HiveMQ ---
     private lateinit var mqttClient: Mqtt5AsyncClient
     private val mqttBrokerHost = "broker.hivemq.com"
     private val mqttTopic = "smartdoor/voiceverification/result"
+
+    // --- Inisialisasi Database Room ---
+    private val db by lazy { AppDatabase.getDatabase(this) }
 
     private val RECORD_AUDIO_REQUEST_CODE = 1
     private val RECORDING_DURATION_MS = 5000L
@@ -62,6 +67,7 @@ class VoiceVerificationActivity : AppCompatActivity() {
         initializeSession()
         initializeMqttClient()
         setupUI()
+        setupListeners()
 
         micButton.setOnClickListener {
             if (checkPermission()) {
@@ -72,7 +78,24 @@ class VoiceVerificationActivity : AppCompatActivity() {
         }
     }
 
-    // --- FUNGSI BARU UNTUK UPDATE UI INDIKATOR ---
+    /**
+     * Menyimpan hasil verifikasi ke dalam database Room.
+     * Dijalankan di background thread menggunakan coroutine.
+     * @param status Status verifikasi ("Berhasil" atau "Gagal").
+     * @param message Pesan detail mengenai hasil verifikasi.
+     */
+    private fun saveVerificationLog(status: String, message: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val log = VerificationLog(
+                username = currentUsername,
+                status = status,
+                message = message,
+                timestamp = System.currentTimeMillis()
+            )
+            db.logDao().insertLog(log)
+        }
+    }
+
     private fun updateConnectionStatusIndicator(isConnected: Boolean) {
         val colorRes = if (isConnected) R.color.status_connected else R.color.status_disconnected
         val color = ContextCompat.getColor(this, colorRes)
@@ -80,19 +103,16 @@ class VoiceVerificationActivity : AppCompatActivity() {
     }
 
     private fun initializeMqttClient() {
-        // Set status awal ke merah
         updateConnectionStatusIndicator(false)
-
         mqttClient = MqttClient.builder()
             .useMqttVersion5()
             .identifier(UUID.randomUUID().toString())
             .serverHost(mqttBrokerHost)
             .automaticReconnectWithDefaultConfig()
-            // --- DITAMBAHKAN: Listener untuk saat koneksi terputus ---
             .addDisconnectedListener { context ->
                 Log.e("MQTT-HiveMQ", "Client terputus.", context.cause)
                 runOnUiThread {
-                    updateConnectionStatusIndicator(false) // Ubah ke merah
+                    updateConnectionStatusIndicator(false)
                     Toast.makeText(applicationContext, "Koneksi perangkat terputus", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -103,28 +123,40 @@ class VoiceVerificationActivity : AppCompatActivity() {
                 runOnUiThread {
                     if (throwable != null) {
                         Log.e("MQTT-HiveMQ", "Koneksi awal gagal!", throwable)
-                        updateConnectionStatusIndicator(false) // Pastikan merah
+                        updateConnectionStatusIndicator(false)
                     } else {
                         Log.d("MQTT-HiveMQ", "Koneksi awal berhasil: $connAck")
-                        updateConnectionStatusIndicator(true) // Ubah ke hijau
+                        updateConnectionStatusIndicator(true)
                         Toast.makeText(applicationContext, "Terhubung ke perangkat", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
     }
 
-    // Sisa kode di bawah ini sebagian besar tidak berubah
-    // ...
-    // --- FUNGSI INISIALISASI (DITAMBAHKAN 1) ---
     private fun initializeViews() {
-        statusIndicator = findViewById(R.id.statusIndicator) // Inisialisasi view baru
+        statusIndicator = findViewById(R.id.statusIndicator)
         micButton = findViewById(R.id.btnRecord)
         instructionText = findViewById(R.id.tvInstruction)
         resultText = findViewById(R.id.tvResult)
         progressBar = findViewById(R.id.progressBar)
+        btnBack = findViewById(R.id.btnBack)
+    }
+    private fun setupListeners() {
+        // Listener untuk tombol mic
+        micButton.setOnClickListener {
+            if (checkPermission()) {
+                toggleRecording()
+            } else {
+                requestPermission()
+            }
+        }
+
+        // Listener untuk tombol kembali
+        btnBack.setOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
     }
 
-    // --- FUNGSI PENGIRIMAN MQTT BARU ---
     private fun sendMqttResult(isSuccess: Boolean, message: String) {
         if (mqttClient.state.isConnectedOrReconnect) {
             val payload = JSONObject().apply {
@@ -134,33 +166,24 @@ class VoiceVerificationActivity : AppCompatActivity() {
                 put("confidence", confidencePercent)
                 put("timestamp", System.currentTimeMillis())
             }.toString()
-
             val publishMessage = Mqtt5Publish.builder()
                 .topic(mqttTopic)
                 .qos(MqttQos.AT_LEAST_ONCE)
                 .payload(payload.toByteArray())
                 .build()
-
-            mqttClient.publish(publishMessage).whenComplete { result, throwable ->
+            mqttClient.publish(publishMessage).whenComplete { _, throwable ->
                 if (throwable != null) {
                     Log.e("MQTT-HiveMQ", "Gagal mengirim pesan!", throwable)
-                    runOnUiThread {
-                        Toast.makeText(this, "Gagal mengirim ke perangkat", Toast.LENGTH_SHORT).show()
-                    }
+                    runOnUiThread { Toast.makeText(this, "Gagal mengirim ke perangkat", Toast.LENGTH_SHORT).show() }
                 } else {
                     Log.d("MQTT-HiveMQ", "Pesan berhasil terkirim ke topik: $mqttTopic")
                 }
             }
         } else {
             Log.e("MQTT-HiveMQ", "Tidak bisa mengirim, client tidak terhubung")
-            runOnUiThread {
-                Toast.makeText(this, "Perangkat offline - hasil tidak terkirim", Toast.LENGTH_SHORT).show()
-            }
+            runOnUiThread { Toast.makeText(this, "Perangkat offline - hasil tidak terkirim", Toast.LENGTH_SHORT).show() }
         }
     }
-
-
-    // --- SISA KODE DI BAWAH INI TIDAK ADA PERUBAHAN ---
 
     private fun initializeSession() {
         sessionManager = SessionManager(this)
@@ -188,22 +211,13 @@ class VoiceVerificationActivity : AppCompatActivity() {
     }
 
     private fun toggleRecording() {
-        if (!isRecording) {
-            startRecording()
-        } else {
-            stopRecording()
-        }
+        if (!isRecording) startRecording() else stopRecording()
     }
 
     private fun startRecording() {
         try {
             audioFile = File.createTempFile("verify_${currentUsername}_${System.currentTimeMillis()}", ".m4a", cacheDir)
-            mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                MediaRecorder(this)
-            } else {
-                @Suppress("DEPRECATION")
-                MediaRecorder()
-            }
+            mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MediaRecorder(this) else @Suppress("DEPRECATION") MediaRecorder()
             mediaRecorder?.apply {
                 setAudioSource(MediaRecorder.AudioSource.MIC)
                 setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
@@ -221,9 +235,7 @@ class VoiceVerificationActivity : AppCompatActivity() {
             resultText.visibility = View.GONE
             lifecycleScope.launch {
                 delay(RECORDING_DURATION_MS)
-                if (isRecording) {
-                    stopRecording()
-                }
+                if (isRecording) stopRecording()
             }
         } catch (e: IOException) {
             Log.e("VoiceVerification", "Gagal memulai rekaman", e)
@@ -268,10 +280,7 @@ class VoiceVerificationActivity : AppCompatActivity() {
             .build()
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                runOnUiThread {
-                    showError("Koneksi server gagal: ${e.localizedMessage}")
-                    cleanupFile()
-                }
+                runOnUiThread { showError("Koneksi server gagal: ${e.localizedMessage}"); cleanupFile() }
             }
             override fun onResponse(call: Call, response: Response) {
                 val responseBody = response.body?.string()
@@ -287,11 +296,9 @@ class VoiceVerificationActivity : AppCompatActivity() {
                             return@runOnUiThread
                         }
                         val prediction = json.optString("prediction", "unknown")
-                        val confidence = json.optDouble("confidence", 0.0)
-                        confidencePercent = json.optDouble("confidence_percent", confidence * 100)
+                        confidencePercent = json.optDouble("confidence_percent", 0.0)
                         val certaintyLevel = json.optString("certainty_level", "UNKNOWN")
-                        val predictionLogic = json.optString("prediction_logic", "")
-                        verifyPrediction(prediction, confidencePercent, certaintyLevel, predictionLogic)
+                        verifyPrediction(prediction, confidencePercent, certaintyLevel)
                     } catch (e: Exception) {
                         showError("Gagal memproses respons server")
                     } finally {
@@ -302,56 +309,96 @@ class VoiceVerificationActivity : AppCompatActivity() {
         })
     }
 
-    private fun verifyPrediction(prediction: String, confidencePercent: Double, certaintyLevel: String, predictionLogic: String) {
+    // --- FUNGSI YANG DIPERBARUI ---
+    private fun verifyPrediction(prediction: String, confidencePercent: Double, certaintyLevel: String) {
         val extractedName = extractNameFromPrediction(prediction)
         val isMatch = currentUsername.isNotEmpty() && extractedName.equals(currentUsername, ignoreCase = true)
+
         when {
-            isMatch -> handleMatchCase(certaintyLevel, confidencePercent)
-            prediction.equals("uncertain", ignoreCase = true) || prediction.equals("error", ignoreCase = true) || prediction.equals("unknown", ignoreCase = true) -> handleUncertainCase()
-            extractedName.isNotEmpty() && !extractedName.equals("unknown", ignoreCase = true) -> handleWrongUserCase(extractedName, confidencePercent)
-            else -> handleUnknownVoiceCase()
+            // Kasus 1: Verifikasi berhasil (username cocok)
+            isMatch -> {
+                handleMatchCase(certaintyLevel, confidencePercent)
+            }
+
+            // Kasus 2: Prediksi adalah suara lain yang terdaftar (bukan user saat ini)
+            extractedName.isNotEmpty() && !extractedName.equals("unknown", ignoreCase = true) && !isMatch -> {
+                handleWrongUserCase(extractedName, confidencePercent)
+            }
+
+            // Kasus 3: Suara tidak pasti atau tidak dikenal (mis: "unknown", "tidak dikenal 1", dll.)
+            else -> {
+                handleUnknownOrUncertainCase(prediction, confidencePercent)
+            }
         }
     }
 
     private fun handleMatchCase(certaintyLevel: String, confidencePercent: Double) {
+        val message: String
+        val status: String
         when (certaintyLevel) {
             "HIGH" -> {
+                message = "Verifikasi Berhasil! Keyakinan: ${String.format("%.1f", confidencePercent)}% (Tinggi)"
+                status = "Berhasil"
                 sendMqttResult(true, "Verifikasi suara berhasil untuk $currentUsername")
-                showSuccess("✓ Verifikasi Berhasil!\nSelamat Datang, $currentUsername\nKeyakinan: ${String.format("%.1f", confidencePercent)}% (Tinggi)")
+                showSuccess("✓ $message\nSelamat Datang, $currentUsername")
             }
             "MEDIUM" -> {
                 if (confidencePercent >= 50.0) {
+                    message = "Verifikasi Berhasil! Keyakinan: ${String.format("%.1f", confidencePercent)}% (Sedang)"
+                    status = "Berhasil"
                     sendMqttResult(true, "Verifikasi suara berhasil (keyakinan sedang)")
-                    showSuccess("✓ Verifikasi Berhasil!\nSelamat Datang, $currentUsername\nKeyakinan: ${String.format("%.1f", confidencePercent)}% (Sedang)")
+                    showSuccess("✓ $message\nSelamat Datang, $currentUsername")
                 } else {
-                    sendMqttResult(false, "Keyakinan sedang (${String.format("%.1f", confidencePercent)}%)")
-                    showWarning("Keyakinan sedang (${String.format("%.1f", confidencePercent)}%).\nCoba lagi dengan suara lebih jelas.")
+                    message = "Keyakinan sedang (${String.format("%.1f", confidencePercent)}%). Coba lagi dengan suara lebih jelas."
+                    status = "Gagal"
+                    sendMqttResult(false, message)
+                    showWarning(message)
                 }
             }
             "LOW" -> {
-                sendMqttResult(false, "Keyakinan rendah (${String.format("%.1f", confidencePercent)}%)")
-                showWarning("Keyakinan rendah (${String.format("%.1f", confidencePercent)}%).\nCoba lagi di lingkungan lebih hening.")
+                message = "Keyakinan rendah (${String.format("%.1f", confidencePercent)}%). Coba lagi di lingkungan lebih hening."
+                status = "Gagal"
+                sendMqttResult(false, message)
+                showWarning(message)
             }
             else -> {
-                sendMqttResult(false, "Keyakinan sangat rendah")
-                showWarning("Keyakinan sangat rendah.\nMohon bicara lebih jelas.")
+                message = "Keyakinan sangat rendah. Mohon bicara lebih jelas."
+                status = "Gagal"
+                sendMqttResult(false, message)
+                showWarning(message)
             }
         }
+        saveVerificationLog(status, message) // Simpan log
     }
 
-    private fun handleUncertainCase() {
-        sendMqttResult(false, "Suara tidak dikenali")
-        showError("Suara tidak dikenali.\nMohon bicara dengan jelas di lingkungan yang hening.")
+    // --- FUNGSI BARU ---
+    /**
+     * Menangani kasus ketika suara tidak dapat diverifikasi sebagai pengguna saat ini.
+     * Ini bisa karena suara tidak dikenal, tidak jelas, atau terdeteksi sebagai "unknown".
+     *
+     * @param prediction Nama prediksi mentah dari API (mis: "unknown", "tidak dikenal 1").
+     * @param confidencePercent Persentase keyakinan dari API untuk prediksi tersebut.
+     */
+    private fun handleUnknownOrUncertainCase(prediction: String, confidencePercent: Double) {
+        // Mempercantik output prediksi, mengganti underscore dengan spasi dan membuat huruf kapital di awal
+        val finalPrediction = prediction.replace("_", " ").replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+
+        val message = "Verifikasi Gagal. Suara Anda tidak dikenali.\n" +
+                "Prediksi sistem: $finalPrediction (Keyakinan: ${String.format("%.1f", confidencePercent)}%)"
+
+        sendMqttResult(false, "Suara tidak dikenali, prediksi: $finalPrediction")
+        showError(message)
+        saveVerificationLog("Gagal", message)
     }
 
+    // --- FUNGSI YANG DIPERBARUI ---
     private fun handleWrongUserCase(extractedName: String, confidencePercent: Double) {
-        sendMqttResult(false, "Suara terdeteksi sebagai $extractedName")
-        showError("Verifikasi Gagal!\nSuara terdeteksi sebagai: $extractedName\n(Keyakinan: ${String.format("%.1f", confidencePercent)}%)")
-    }
+        val message = "Verifikasi Gagal! Suara terdeteksi sebagai pengguna lain: $extractedName\n" +
+                "(Keyakinan: ${String.format("%.1f", confidencePercent)}%)"
 
-    private fun handleUnknownVoiceCase() {
-        sendMqttResult(false, "Suara tidak terdaftar")
-        showError("Suara tidak terdaftar.\nPastikan suara Anda sudah terdaftar di sistem.")
+        sendMqttResult(false, "Suara terdeteksi sebagai $extractedName")
+        showError(message)
+        saveVerificationLog("Gagal", message)
     }
 
     private fun extractNameFromPrediction(prediction: String): String {

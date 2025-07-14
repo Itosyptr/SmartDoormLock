@@ -6,9 +6,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    android:paddingStart="15dp"
-    android:paddingTop="20dp"
-    android:paddingEnd="15dp"
     tools:context=".register.RegisterActivity">
 
     <ScrollView
@@ -58,8 +55,8 @@
 
             <ProgressBar
                 android:id="@+id/progress_bar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="171dp"
+                android:layout_height="249dp"
                 android:layout_marginTop="12dp"
                 android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -75,6 +72,7 @@
                 app:boxStrokeColor="@color/maron"
                 app:boxStrokeWidth="2dp"
                 app:errorEnabled="true"
+                android:padding="20dp"
                 app:hintTextColor="@color/maron"
                 app:startIconDrawable="@drawable/baseline_person_24"
                 app:startIconTint="@color/maron"
@@ -102,6 +100,7 @@
                 android:hint="@string/nim_label" app:boxStrokeColor="@color/maron"
                 app:boxStrokeWidth="2dp"
                 app:errorEnabled="true"
+                android:padding="20dp"
                 app:hintTextColor="@color/maron"
                 app:startIconDrawable="@drawable/baseline_school_24" app:startIconTint="@color/maron"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -127,6 +126,7 @@
                 android:hint="@string/email"
                 app:boxStrokeColor="@color/maron"
                 app:boxStrokeWidth="2dp"
+                android:padding="20dp"
                 app:errorEnabled="true"
                 app:hintTextColor="@color/maron"
                 app:startIconDrawable="@drawable/baseline_email_24"
@@ -156,6 +156,7 @@
                 app:boxStrokeWidth="2dp"
                 app:endIconMode="password_toggle"
                 app:endIconTint="@color/maron"
+                android:padding="20dp"
                 app:errorEnabled="true"
                 app:hintTextColor="@color/maron"
                 app:startIconDrawable="@drawable/baseline_lock_24"
@@ -172,6 +173,7 @@
                     android:inputType="textPassword"
                     android:paddingStart="48dp"
                     android:paddingEnd="5dp"
+
                     android:textColor="@color/maron"
                     android:textSize="16sp" />
             </com.google.android.material.textfield.TextInputLayout>

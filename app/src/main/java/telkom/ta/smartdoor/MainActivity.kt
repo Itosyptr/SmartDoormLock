@@ -15,16 +15,17 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.net.toUri
 import de.hdodenhof.circleimageview.CircleImageView
+import okhttp3.*
+import org.json.JSONObject
+import telkom.ta.smartdoor.admin.AdminLoginActivity // --- PERUBAHAN: Import AdminLoginActivity
 import telkom.ta.smartdoor.login.LoginActivity
 import telkom.ta.smartdoor.session.SessionManager
 import telkom.ta.smartdoor.ui.ProfileActivity
 import telkom.ta.smartdoor.verifikasi.VoiceVerificationActivity
-import okhttp3.*
-import org.json.JSONObject
 import java.io.IOException
-import androidx.core.net.toUri
-import androidx.core.graphics.drawable.toDrawable
 
 class MainActivity : AppCompatActivity() {
 
@@ -35,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvWelcome: TextView
     private lateinit var btnVerify: Button
     private lateinit var btnLogout: ImageButton
+    private lateinit var btnAdmin: Button
 
     private lateinit var sessionManager: SessionManager
     private lateinit var sharedPreferences: SharedPreferences
@@ -62,7 +64,8 @@ class MainActivity : AppCompatActivity() {
         tvWelcome = findViewById(R.id.tvWelcome)
         btnVerify = findViewById(R.id.btnVerify)
         btnLogout = findViewById(R.id.btnLogout)
-
+        // Pastikan ID 'btn_admin_panel' atau 'btn_admin_login' sesuai dengan yang Anda tambahkan di XML
+        btnAdmin = findViewById(R.id.btn_admin_login) // Ganti jika ID Anda berbeda
     }
 
     private fun checkLoginStatus() {
@@ -84,7 +87,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, VoiceVerificationActivity::class.java))
         }
 
-
         imgProfile.setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
         }
@@ -92,10 +94,15 @@ class MainActivity : AppCompatActivity() {
         btnLogout.setOnClickListener {
             showLogoutConfirmationDialog()
         }
+
+        // --- KODE DIPERBARUI: Listener untuk Tombol Admin ---
+        btnAdmin.setOnClickListener {
+            // Langsung pindah ke halaman login admin
+            startActivity(Intent(this, AdminLoginActivity::class.java))
+        }
     }
 
     private fun fetchUserProfile() {
-        // Get username from session manager
         val userData = sessionManager.getUserData()
         val username = userData["username"] ?: run {
             Log.e("MainActivity", "Username not found in session")
@@ -124,34 +131,20 @@ class MainActivity : AppCompatActivity() {
                             handleProfileError(response)
                             return@runOnUiThread
                         }
-
                         val responseBody = response.body?.string()
                         Log.d("ProfileAPI", "Response: $responseBody")
-
-                        // Parse the API response
                         val jsonResponse = JSONObject(responseBody ?: "{}")
-
-                        // Get the profile object from response
                         val profileObject = jsonResponse.getJSONObject("profile")
-
-                        // Extract profile data
-                        val name = profileObject.optString("username", "User") // Using username as name if name field doesn't exist
+                        val name = profileObject.optString("username", "User")
                         val nim = profileObject.getString("nim")
-                        profileObject.optString("email", "")
-
-                        // Update UI with fresh data
                         displayProfile(name, nim)
-
-                        // Save to session manager
                         sessionManager.saveProfileData(
                             name = name,
-                            bio = "", // Add if available
+                            bio = "",
                             nim = nim,
-                            imageUri = null // Add if available
+                            imageUri = null
                         )
-
                         Log.d("ProfileData", "Successfully loaded profile: $name, NIM: $nim")
-
                     } catch (e: Exception) {
                         Log.e("ProfileAPI", "Error parsing profile: ${e.message}")
                         displayLocalProfile()
@@ -160,10 +153,10 @@ class MainActivity : AppCompatActivity() {
             }
         })
     }
+
     private fun handleProfileError(response: Response) {
         val errorCode = response.code
         Log.e("ProfileAPI", "Error code: $errorCode")
-
         when (errorCode) {
             401 -> {
                 Toast.makeText(this, "Session expired. Please login again.", Toast.LENGTH_SHORT).show()
@@ -174,11 +167,7 @@ class MainActivity : AppCompatActivity() {
                 displayLocalProfile()
             }
             else -> {
-                Toast.makeText(
-                    this,
-                    "Failed to load profile (Error $errorCode)",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this, "Failed to load profile (Error $errorCode)", Toast.LENGTH_SHORT).show()
                 displayLocalProfile()
             }
         }
@@ -196,23 +185,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun displayLocalProfile() {
-        // First try to get from profile data (updated data)
         val profileData = sessionManager.getProfileData()
-        // Then fall back to user data (login data)
         val userData = sessionManager.getUserData()
-
         val name = when {
             !profileData["name"].isNullOrEmpty() -> profileData["name"]!!
             !userData["username"].isNullOrEmpty() -> userData["username"]!!
             else -> "User"
         }
-
         val nim = when {
             !profileData["nim"].isNullOrEmpty() -> profileData["nim"]!!
             !userData["nim"].isNullOrEmpty() -> userData["nim"]!!
             else -> "N/A"
         }
-
         displayProfile(name, nim)
         Toast.makeText(this, "Using local profile data", Toast.LENGTH_SHORT).show()
     }
@@ -220,7 +204,6 @@ class MainActivity : AppCompatActivity() {
     private fun loadProfileImage() {
         val profileData = sessionManager.getProfileData()
         val imageUriString = profileData["imageUri"]
-
         if (!imageUriString.isNullOrEmpty()) {
             try {
                 val imageUri = imageUriString.toUri()
@@ -242,18 +225,14 @@ class MainActivity : AppCompatActivity() {
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
             .create()
-
         dialog.window?.setBackgroundDrawable(android.graphics.Color.TRANSPARENT.toDrawable())
-
         dialogView.findViewById<Button>(R.id.btnYa).setOnClickListener {
             logoutUser()
             dialog.dismiss()
         }
-
         dialogView.findViewById<Button>(R.id.btnTidak).setOnClickListener {
             dialog.dismiss()
         }
-
         dialog.show()
     }
 

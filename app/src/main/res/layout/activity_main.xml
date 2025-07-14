@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="@color/white"
     android:fillViewport="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -16,47 +16,38 @@
         <ImageView
             android:id="@+id/imgBackground"
             android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:minHeight="180dp"
+            android:layout_height="200dp"
             android:contentDescription="@string/deskripsi_background_atas"
             android:scaleType="centerCrop"
             android:src="@drawable/maintop"
-            app:layout_constraintDimensionRatio="16:9"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/imgProfile"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_marginStart="24dp"
             android:layout_marginTop="32dp"
-            android:minWidth="48dp"
-            android:minHeight="48dp"
             android:src="@drawable/ic_profile"
-            app:civ_border_color="@android:color/white"
+            app:civ_border_color="@color/white"
             app:civ_border_width="2dp"
-            app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_percent="0.12" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
             android:id="@+id/btnLogout"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginTop="32dp"
-            android:layout_marginEnd="24dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="28dp"
+            android:layout_marginEnd="16dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/tombol_logout"
-            android:padding="8dp"
             android:src="@drawable/ic_logout"
-            app:tint="@android:color/white"
-            app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_percent="0.12" />
+            app:tint="@color/white" />
 
         <TextView
             android:id="@+id/tvName"
@@ -67,7 +58,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@string/profile"
-            android:textColor="@android:color/white"
+            android:textColor="@color/white"
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@+id/tvNIM"
@@ -85,7 +76,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@string/mahasiswa_nim"
-            android:textColor="@android:color/white"
+            android:textColor="@color/white"
             android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="@id/imgProfile"
             app:layout_constraintEnd_toStartOf="@id/btnLogout"
@@ -93,15 +84,16 @@
             app:layout_constraintTop_toBottomOf="@id/tvName" />
 
         <!-- Welcome Card -->
-        <androidx.cardview.widget.CardView
+        <!-- Menggunakan MaterialCardView untuk konsistensi -->
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardWelcome"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"
             android:layout_marginTop="24dp"
             android:layout_marginEnd="24dp"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="8dp"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="12dp"
             app:cardElevation="4dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -115,31 +107,39 @@
                 android:minHeight="108dp"
                 android:padding="24dp"
                 android:text="@string/welcome"
-                android:textColor="@android:color/black"
+                android:textColor="@color/black"
                 android:textSize="18sp" />
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Verify Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnVerify"
-            style="@style/Widget.MaterialComponents.Button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="64dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginEnd="64dp"
-            android:layout_marginBottom="32dp"
-            android:backgroundTint="@color/merah"
+            android:layout_marginTop="32dp"
+            android:backgroundTint="@color/reds"
             android:paddingVertical="16dp"
             android:text="@string/verifikasi"
-            android:textColor="@android:color/white"
+            android:textColor="@color/white"
             android:textSize="16sp"
-            app:cornerRadius="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:cornerRadius="16dp"
+            app:layout_constraintEnd_toEndOf="@+id/cardWelcome"
+            app:layout_constraintStart_toStartOf="@+id/cardWelcome"
+            app:layout_constraintTop_toBottomOf="@+id/cardWelcome" />
+
+        <!-- Tombol Admin -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_admin_login"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/login_sebagai_admin"
+            app:icon="@drawable/ic_admin_panel_settings"
+            app:iconPadding="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/cardWelcome"
-            app:layout_constraintWidth_percent="0.7" />
+            app:layout_constraintTop_toBottomOf="@id/btnVerify" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

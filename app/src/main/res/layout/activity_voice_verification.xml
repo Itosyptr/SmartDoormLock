@@ -14,6 +14,17 @@
         android:padding="16dp"
         tools:context=".verifikasi.VoiceVerificationActivity">
 
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Tombol Kembali"
+            android:src="@drawable/ic_back"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/black" />
+
         <View
             android:id="@+id/statusIndicator"
             android:layout_width="24dp"

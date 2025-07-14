@@ -1,16 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Theme.SmartDoor" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Warna latar belakang status bar -->
-        <item name="android:statusBarColor">@android:color/transparent</item>
+    <!--
+      Tema dasar aplikasi.
+      Menggunakan parent "DayNight" memungkinkan aplikasi secara otomatis
+      beralih antara tema terang dan gelap sesuai pengaturan sistem.
+    -->
+    <style name="Theme.SmartDoor" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Warna utama aplikasi (Primary Brand Color) -->
+        <item name="colorPrimary">#EB1E28</item>
+        <item name="colorPrimaryVariant">#EB1E28</item>
+        <item name="colorOnPrimary">@color/white</item>
 
-        <!-- Ini untuk mengatur ikon status bar menjadi gelap jika latar status bar terang -->
-        <item name="android:windowLightStatusBar">true</item>
+        <!-- Warna sekunder aplikasi (Secondary Brand Color) -->
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondaryVariant">@color/teal_700</item>
+        <item name="colorOnSecondary">@color/black</item>
 
-        <!-- (Opsional) warna lain yang kamu gunakan -->
-        <item name="colorPrimary">@color/black</item>
-        <item name="colorPrimaryVariant">@color/black</item>
-        <item name="colorOnPrimary">@color/red</item>
+        <!-- Atribut kustom yang bisa Anda gunakan di seluruh aplikasi -->
+        <item name="backgroundColor">@color/background_color</item>
+        <item name="textColorPrimary">@color/text_color_primary</item>
+        <item name="textColorSecondary">@color/text_color_secondary</item>
+
+        <!-- PERBAIKAN: Menggunakan atribut standar Material 3 untuk Card -->
+        <!-- Ini akan mengambil nilai dari @color/card_background_color -->
+        <item name="colorSurfaceContainer">@color/card_background_color</item>
+
+        <!-- Warna Status Bar -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
     </style>
-
 </resources>
