@@ -77,9 +77,9 @@ dependencies {
     // UI (View System & Compose)
     implementation(libs.circleimageview)
     implementation(libs.glide)
-
     // MQTT
     implementation(libs.hivemq.mqtt.client)
+
 
     // JSON
     implementation(libs.org.json)

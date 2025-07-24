@@ -3,10 +3,14 @@ package telkom.ta.smartdoor.verifikasi
 import android.Manifest
 import android.content.pm.PackageManager
 import android.media.MediaRecorder
-import android.os.*
+import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.*
+import android.widget.ImageButton
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -18,9 +22,14 @@ import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import okhttp3.*
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.Response
 import org.json.JSONObject
 import telkom.ta.smartdoor.R
 import telkom.ta.smartdoor.database.AppDatabase
@@ -54,7 +63,7 @@ class VoiceVerificationActivity : AppCompatActivity() {
 
     // --- Inisialisasi Database Room ---
     private val db by lazy { AppDatabase.getDatabase(this) }
-
+ 
     private val RECORD_AUDIO_REQUEST_CODE = 1
     private val RECORDING_DURATION_MS = 5000L
 
